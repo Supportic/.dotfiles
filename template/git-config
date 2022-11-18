@@ -1,0 +1,66 @@
+[init]
+	defaultBranch = main
+[core]
+	editor = code --wait --new-window
+	### adds the --no-ff flag when merging
+	mergeoptions = --no-ff
+	### define line endings when committing
+	autocrlf = input
+	eol = lf
+	### ignoriert chmod Änderungen an Dateien, um Berechtigungsprobleme zu vermeiden.
+  ### ignore chmod changes on files and directory to avoid permission issues
+	fileMode = false
+[commit]
+	verbose = true # lets you see the changes while typing the commit message
+[pull]
+	### automatically rebase when pulling (git >= 1.7.9)
+	rebase = true
+[branch]
+	### automatically rebase when pulling (git < 1.7.9)
+	autosetuprebase = always
+[push]
+  ### sets the push method to simple for older git versions
+	default = simple
+[help]
+	### executes next known command (wait 2 seconds till execution)
+	autocorrect = 20
+[color]
+	branch = auto
+	diff = auto
+	status = auto
+[color "branch"]
+	current = magenta bold
+	local = yellow
+	remote = green
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+[alias]
+  # "!" in aliases runs any external command outside of GIT
+	st = status -s
+	co = checkout
+	cob = checkout -b
+	del = branch -D
+	# get current branch name
+	gb = !git branch | grep '^\\*' | cut -d' ' -f2
+	lbr = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) %(color:bold blue)<%(authorname)>' --sort=-committerdate
+	# unstage all your stages files
+	unstage = reset --soft HEAD^
+	# revert the last commit, keep the changes
+	undo = reset HEAD~1 --mixed
+	# revert all local changes
+	drop = !git reset --hard
+	lg = !git log -n 30 --graph --abbrev-commit --pretty=format:'%C(magenta)%h%C(reset) -%C(yellow)%d%Creset %s %C(green)(%cr) %C(bold blue)<%an>'
+	save = stash push
+	pop = stash pop
+	amend = commit --amend -m
+	gl = !git config --global -l
+	aliases = config --get-regexp alias
+	# search in commits | provide search term
+	se = !git rev-list --all | xargs git grep -F
