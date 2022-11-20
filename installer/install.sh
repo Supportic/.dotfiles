@@ -125,6 +125,23 @@ function install_zsh() {
     # unattended -> not trying to change the default shell, and it also won't run zsh when the installation has finished.
     bash -c "$(download https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
+    # remove not used stuff
+    local exclude_ext
+    local dir
+    local dirname
+
+    exclude_ext=(git)
+
+    rm -rf $HOME/.oh-my-zsh/themes/*
+    for dir in ~/.oh-my-zsh/plugins/*; do
+      dirname="$(basename ${dir})"
+      # NOTE: invert by removing !
+      if [ -d $dir ] && [[ ! " ${exclude_ext[*]} " =~ " ${dirname} " ]]; then
+        rm -rf $dir
+      fi
+    done
+    printf "\n# custom injected\n/themes\n/plugins\n" >> $HOME/.oh-my-zsh/.gitignore
+
     # install theme 
     git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
     # install plugins
