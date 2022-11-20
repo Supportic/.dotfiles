@@ -14,9 +14,9 @@ alias grep="grep --color=auto"
 # alias -g rm="rm -i"
 # alias -g mv="mv -i"
 ## Safely trash files
-[ -x $(command -v "trash") ] && alias rm=trash
+[ ! -z $(command -v "trash") ] && alias rm=trash
 alias python=python3
-[ -x $(command -v "bat") ] && alias cat=bat
+[ ! -z $(command -v "bat") ] && alias cat=bat
 
 #search history
 alias hist='history | grep'
