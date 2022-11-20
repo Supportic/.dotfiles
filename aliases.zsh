@@ -14,20 +14,22 @@ alias grep="grep --color=auto"
 # alias -g rm="rm -i"
 # alias -g mv="mv -i"
 ## Safely trash files
-[ ! -z $(command -v "trash") ] && alias rm=trash
+[ -x $(command -v "trash") ] && alias rm=trash
 alias python=python3
-[ ! -z $(command -v "bat") ] && alias rm=trash
+[ -x $(command -v "bat") ] && alias cat=bat
 
 #search history
 alias hist='history | grep'
 # Get week number
 alias week='date +%V'
+# copy git branch name to clipboard (git plugin required)
+alias gbc="current_branch | clipcopy"
 
-# URL-encode strings
+# URL-encode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L130)
 alias urlformencode='omz_urlencode'
-alias urlencode="python -c \"import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]));\""
-
-[ ! -z $(command -v "omz_urldecode") ] && alias urldecode="omz_urldecode" || alias urldecode="python -c \"import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]));\""
+[ -x $(command -v "omz_urlencode") ] && alias urlencode="omz_urldecode -P" || alias urlencode="python -c \"import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]));\""
+# URL-decode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L211)
+[ -x $(command -v "omz_urldecode") ] && alias urldecode="omz_urldecode" || alias urldecode="python -c \"import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]));\""
 
 if [ -x "$(command -v exa)" ]; then
 
