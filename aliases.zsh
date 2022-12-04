@@ -1,5 +1,6 @@
 alias zshconfig="code --new-window \
   ~/.zshrc \
+  ~/.zlogout \
   ~/.oh-my-zsh/custom/aliases.zsh \
   ~/.oh-my-zsh/custom/functions.zsh \
   ~/.zshenv

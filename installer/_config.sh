@@ -30,6 +30,7 @@ function setup_zsh() {
   ln -sfn "${DOTFILES_DIR}/functions.zsh" ~/.oh-my-zsh/custom/functions.zsh
   ln -sfn "${DOTFILES_DIR}/.zshenv" ~/.zshenv
   ln -sfn "${DOTFILES_DIR}/.zshrc" ~/.zshrc
+  ln -sfn "${DOTFILES_DIR}/.zlogout" ~/.zlogout
   ln -sfn "${DOTFILES_DIR}/.p10k.zsh" ~/.p10k.zsh
 }
 
