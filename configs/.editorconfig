@@ -10,11 +10,19 @@ indent_style = space
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-curly_bracket_next_line = false
-spaces_around_operators = true
 
 [*.{js,ts}]
 quote_type = single
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.php]
+indent_size = 4
+curly_bracket_next_line = true
+
+[*.xml]
+indent_size = 4
 
 [{Makefile,makefile}]
 indent_style = tab
