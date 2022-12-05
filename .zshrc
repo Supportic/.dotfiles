@@ -129,12 +129,12 @@ if [ -x $(command -v nvm) ]; then
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  
 fi
 
-# create SSH-agent if it doesn't exist
-# ssh-add -l
+# windows WSL: ssh agent does not persist after session, recreate it
+# verify: ssh-add -l
 if [ -z "${SSH_AUTH_SOCK}" ] ; then
-  eval `ssh-agent -s` > /dev/null 2>&1
+  eval "$(ssh-agent -s)" > /dev/null 2>&1
   grep -slR "PRIVATE" ~/.ssh/ | xargs -t ssh-add > /dev/null 2>&1
 fi
 
-# keychain -L
+# verify: keychain -L
 grep -slR "PRIVATE" ~/.ssh/ | xargs keychain --eval --agents ssh > /dev/null 2>&1

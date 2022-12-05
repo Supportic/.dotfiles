@@ -1,7 +1,10 @@
-# clean up current ssh agent (delete ssh- directory in /tmp)
-if [ -n "$SSH_AGENT_PID" ]; then
-  agents=$(ps -p "${SSH_AGENT_PID}" >/dev/null 2>&1 | grep ssh-agent)
-  [ -n "${agents}" ] && kill "${SSH_AGENT_PID}"
+# windows WSL: clean up current ssh agent (delete ssh- directory in /tmp)
+if  [ -n "${IS_WSL}" ] ||
+    [ -n "${WSL_DISTRO_NAME}" ] &&
+    [ -n "${SSH_AGENT_PID}" ]; then
+#   agents=$(ps -p "${SSH_AGENT_PID}" >/dev/null 2>&1 | grep ssh-agent)
+#   [ -n "${agents}" ] && kill "${SSH_AGENT_PID}"
+    ssh-agent -k
 fi
 
 # when leaving the console clear the screen to increase privacy
