@@ -121,7 +121,7 @@ else
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
 
-if [ -x $(command -v nvm) ]; then
+if [ -x "$(command -v nvm)" ]; then
   export NVM_DIR="$HOME/.nvm"
   # This loads nvm
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
