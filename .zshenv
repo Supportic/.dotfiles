@@ -27,4 +27,5 @@ typeset -U PATH path
 
 # set PATH so it includes user's private bin if it exists
 [ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"
+[ -d "$HOME/bin/scripts" ] && export PATH="$HOME/bin/scripts:$PATH"
 [ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"

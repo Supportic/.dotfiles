@@ -44,13 +44,18 @@ function setup_ssh() {
 }
 
 function setup_scripts() {
-  [ ! -d ~/bin ] && mkdir -p ~/bin
+  [ ! -d "${LOCAL_BIN_DIR}" ] && mkdir -p "${LOCAL_BIN_DIR}"
+  [ ! -d "${LOCAL_SCRIPTS_DIR}" ] && mkdir -p "${LOCAL_SCRIPTS_DIR}"
+
+  rm -f "${LOCAL_SCRIPTS_DIR}"/*
+
   local script=
-  for script in ${DOTFILES_DIR}/scripts/* ${DOTFILES_DIR}/scripts/**/*; do
+  # for script in ${DOTFILES_DIR}/bin/* ${DOTFILES_DIR}/bin/**/*; do
+  for script in $(find "${DOTFILES_DIR}"/bin -name "*.sh"); do
     if [ -f $script ]; then
       chmod u+x $script
-      filename=$(basename $script)
-      ln -sfn $script ~/bin/$filename
+      filename=$(basename ${script%.*})
+      ln -sfn $script "${LOCAL_SCRIPTS_DIR}"/$filename
     fi
   done
 }

@@ -15,4 +15,5 @@ Various config files for different frameworks or libraries.
 ### after installation
 
 **/usr/local/bin**: additional global programs  
-**~/bin**: custom user scripts
+**~/bin**: custom user binaries
+**~/bin/scripts**: custom user scripts

@@ -23,6 +23,14 @@ readonly TEMPLATE_DIR
 TZ="Europe/Berlin"
 readonly TZ
 
+# Binaries local directory
+LOCAL_BIN_DIR="${HOME}/bin"
+readonly LOCAL_BIN_DIR
+
+# Scripts local directory
+LOCAL_SCRIPTS_DIR="${LOCAL_BIN_DIR}/scripts"
+readonly LOCAL_SCRIPTS_DIR
+
 # Fonts local directory
 LOCAL_FONTS_DIR="${HOME}/.fonts"
 readonly LOCAL_FONTS_DIR
