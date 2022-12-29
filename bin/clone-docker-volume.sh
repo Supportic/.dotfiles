@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# https://www.laub-home.de/wiki/Docker_Volume_Rename_-_HowTo
+
 # check if docker volume exists
 function volumeExists(){
   docker volume inspect "$@" > /dev/null 2>&1
@@ -33,14 +35,17 @@ function main(){
   fi
 
   if ! volumeExists "$2" ; then
-    echo "The destination volume \"$2\" does not exist."
+    echo "Creating destination volume \"$2\" ...";
+    docker volume create --name "$2" > /dev/null 2>&1  && echo "Volume $2 successfully created.";
+  else
+    echo "The destination volume \"$2\" already exists."
+
     while true; do
-      read -p "Would you like to create it? [y/n] " answer
+      read -p "Would you like to copy data into it? [y/n] " answer
       case $answer in
           [Yy]* )
-          echo "Creating destination volume \"$2\" ...";
-          docker volume create --name "$2" > /dev/null 2>&1  && echo "Volume $2 successfully created.";
-          break;;
+          break
+          ;;
           [Nn]* )
           exit 0
           ;;
@@ -49,10 +54,6 @@ function main(){
           ;;
       esac
 	  done
-  else
-    echo "The destination volume \"$2\" already exists."
-    echo "Please delete it first: \"docker volume rm $2\""
-    exit 1
   fi
 
   # copy the stuff
