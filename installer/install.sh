@@ -255,6 +255,7 @@ install_main
 end=$(date +%s%N)
 difference="$((end-start))"
 
+setup_scripts
 configure_settings
 
 printf "Installation Complete\n"
