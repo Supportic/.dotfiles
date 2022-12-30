@@ -122,7 +122,7 @@ else
 fi
 
 if [ -x "$(command -v nvm)" ]; then
-  export NVM_DIR="$HOME/.nvm"
+  export NVM_DIR="$HOME/.config/nvm"
   # This loads nvm
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
   # This loads nvm bash_completion
