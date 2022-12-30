@@ -26,10 +26,10 @@ function displaytime() {
   printf '%d milliseconds\n' "${MS:(-3)}"
 }
 
-# regardless of capitalisation, includes numbers 1-9,
+# regardless of capitalisation
 # $ limits to the exact characters
 function isTrue() {
-  if [[ "${@^^}" =~ ^(TRUE$|YES$|Y$|O$|ON$|[1-9]) ]]; then
+  if [[ "${@^^}" =~ ^(TRUE$|YES$|Y$|O$|ON$|1$) ]]; then
     return 0;
   fi
   return 1

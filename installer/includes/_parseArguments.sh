@@ -13,7 +13,7 @@ if [ "$#" != 0 ]; then
     opt="$1"; shift
     case "$opt" in
 
-      # Your options go here.
+      # Your options go here. If provided then set value.
       -n|--nointeractive) nointeractive=true;;
 
       # Arguments processing. You may remove any unneeded line after the 1st.

@@ -114,10 +114,8 @@ fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 if [[ $__INTELLIJ_COMMAND_HISTFILE__ ]]; then
-  # [[ ! -f ~/.p10k-intellij.zsh ]] || souce ~/.p10k-intellij.zsh
-  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+  [[ ! -f ~/.p10k-intellij.zsh ]] || source ~/.p10k-intellij.zsh
 else
-  # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
 
