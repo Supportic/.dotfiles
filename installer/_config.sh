@@ -62,9 +62,14 @@ function setup_scripts() {
 
 function configure_settings() {
 
-  if ! isTrue "${nointeractive:-false}"; then
+  if isFalse "${nointeractive}"; then
 
-    print_info "We are almost done. Let's setup some user configurations...";
+    if [ -z "$(git config --global --get user.name)" ] ||
+       [ -z "$(git config --global --get user.email)" ]
+    then
+      print_info "We are almost done. Let's setup some user configurations...";
+    fi
+
     if [ -z "$(git config --global --get user.name)" ]; then
       read -ep $'Git username: ' git_user
       git config --global user.name "${git_user}"

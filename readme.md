@@ -1,5 +1,14 @@
 # Dotfiles
 
+## Installer
+
+Automated installation of a fresh linux system inside the `installer` directory.
+
+- `./install.sh [-ni|--nointeractive] [-nd|--nodocker]` - installing programs and setup configurations
+  - nointeractive - skip any user input questions
+  - nodocker - don't install docker
+- `./config.sh` - to renew symlinks and setup configurations
+
 ## Directories
 
 **installer**  

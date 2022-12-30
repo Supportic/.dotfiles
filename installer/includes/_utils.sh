@@ -29,7 +29,14 @@ function displaytime() {
 # regardless of capitalisation
 # $ limits to the exact characters
 function isTrue() {
-  if [[ "${@^^}" =~ ^(TRUE$|YES$|Y$|O$|ON$|1$) ]]; then
+  if [[ "${@^^}" =~ ^(TRUE$|YES$|Y$|ON$|1$) ]]; then
+    return 0;
+  fi
+  return 1
+}
+
+function isFalse() {
+  if [[ "${@^^}" =~ ^(FALSE$|NO$|N$|OFF$|0$) ]]; then
     return 0;
   fi
   return 1

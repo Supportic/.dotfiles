@@ -3,15 +3,15 @@
 # https://www.laub-home.de/wiki/Docker_Volume_Rename_-_HowTo
 
 # check if docker volume exists
-function volumeExists(){
-  docker volume inspect "$@" > /dev/null 2>&1
+function volumeExists() {
+  docker volume inspect "$1" > /dev/null 2>&1
   # was last command successful. Answer is 0 which means 'yes'
   [ "$?" != "0" ] && return 1
 
   return 0
 }
 
-function main(){
+function main() {
   local programname=
   programname=$(basename ${0})
   local usage=

@@ -5,6 +5,10 @@ set -euo pipefail
 usage_error () { echo >&2 "$(basename $0):  $1"; exit 2; }
 assert_argument () { test "$1" != "$EOL" || usage_error "$2 requires an argument"; }
 
+# defaults
+nointeractive="false"
+nodocker="false"
+
 # One loop, nothing more.
 if [ "$#" != 0 ]; then
   EOL=$(printf '\1\3\3\7')
@@ -14,7 +18,8 @@ if [ "$#" != 0 ]; then
     case "$opt" in
 
       # Your options go here. If provided then set value.
-      -n|--nointeractive) nointeractive=true;;
+      -ni|--nointeractive) nointeractive="true";;
+      -nd|--nodocker) nodocker="true";;
 
       # Arguments processing. You may remove any unneeded line after the 1st.
       -|''|[!-]*) set -- "$@" "$opt";;                                          # positional argument, rotate to the end

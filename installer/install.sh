@@ -12,9 +12,9 @@ printf "This script will configure your Linux machine and install the following 
 - docker / git / ssh
 \n"
 
-if ! isTrue "${nointeractive:-false}"; then
+if isFalse "${nointeractive}"; then
   read -rep $'Do you want to continue? [y/n]: ' canStart
-  ! isTrue "$canStart" && echo "Stopped: script exited." && exit;
+  isFalse "$canStart" && echo "Stopped: script exited." && exit;
   echo "Setting up Linux..."
 fi
 
@@ -241,7 +241,7 @@ function install_main() {
   install_ssh
 
   # cannot be installed inside of another container
-  if ! isTrue "${nointeractive:-false}"; then
+  if isFalse "${nointeractive}" || isFalse "${nodocker}"; then
     install_docker
   fi
 }
