@@ -19,13 +19,13 @@ function main() {
 
   # check whether user had supplied -h or --help
   if [[ $@ == "--help" ||  $@ == "-h" ]]; then
-    echo "This script clones an existing docker volume via an alpine image."
-    echo -e "List all available docker volumes: \"docker volume ls\"\n"
-    echo "${usage}"
+    printf "This script clones an existing docker volume via an alpine image.\n"
+    printf "List all available docker volumes: \"docker volume ls\"\n\n"
+    printf "${usage}\n"
     exit 0
   elif [ $# == 0 ] || [ -z $2 ]; then
-    echo -e "Arguments are missing!\n"
-    echo "${usage}"
+    printf "Arguments are missing!\n\n"
+    printf "${usage}\n"
     exit 0
   fi
 
