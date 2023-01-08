@@ -81,6 +81,7 @@ plugins=(
   zsh-autosuggestions
   zsh-syntax-highlighting
   git
+  git-open
   # docker
   # z
 )

@@ -147,6 +147,9 @@ function install_zsh() {
     # install plugins
     git clone -q https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-autosuggestions || die "Unable to clone zsh-autosuggestions"
     git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
+    git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
+    # replace string to avoid console output
+    sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl"  > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open/git-open
   else
     printf "Skipping: zsh already installed.\n"
   fi
@@ -172,7 +175,7 @@ function install_utils() {
     EXA_VERSION=$(download "https://api.github.com/repos/ogham/exa/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
     download "https://github.com/ogham/exa/releases/latest/download/exa-linux-x86_64-v${EXA_VERSION}.zip" "${EXA_TEMPFILE}"
     # -> /usr/local/bin/exa
-    sudo unzip -qo "${EXA_TEMPFILE}" bin/exa -d /usr/local >/dev/null 2>&1
+    sudo unzip -qo "${EXA_TEMPFILE}" bin/exa -d /usr/local > /dev/null 2>&1
     cleanup "${EXA_TEMPFILE}"
   fi
 
