@@ -6,7 +6,7 @@ alias zshconfig="code --new-window \
   ~/.zshenv
 "
 alias sshconfig="code --new-window ~/.ssh/config"
-alias hostconfig="code --new-window ~/etc/hosts"
+alias hostconfig="sudo nano /etc/hosts"
 
 alias grep="grep --color=auto"
 
