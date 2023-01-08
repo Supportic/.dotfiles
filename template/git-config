@@ -7,7 +7,6 @@
 	### define line endings when committing
 	autocrlf = input
 	eol = lf
-	### ignoriert chmod Änderungen an Dateien, um Berechtigungsprobleme zu vermeiden.
   ### ignore chmod changes on files and directory to avoid permission issues
 	fileMode = false
 [commit]
@@ -49,6 +48,7 @@
 	del = branch -D
 	# get current branch name
 	gb = !git branch | grep '^\\*' | cut -d' ' -f2
+	# show latest commit
 	lbr = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) %(color:bold blue)<%(authorname)>' --sort=-committerdate
 	# unstage all your stages files
 	unstage = reset --soft HEAD^
@@ -56,7 +56,10 @@
 	undo = reset HEAD~1 --mixed
 	# revert all local changes
 	drop = !git reset --hard
-	lg = !git log -n 30 --graph --abbrev-commit --pretty=format:'%C(magenta)%h%C(reset) -%C(yellow)%d%Creset %s %C(green)(%cr) %C(bold blue)<%an>'
+	# log
+	l = log -n 30 --all --topo-order --pretty=tformat:'%C(bold magenta)%h%C(bold yellow)%d%C(white) %s %C(reset)%C(green)(%cr)'
+	lg = log -n 30 --all --date=format-local:'%b %d. %Y %T (Week %W)' --pretty=tformat:'├─ %C(bold magenta)%h%C(reset) ─┐  %C(cyan)%ad%C(reset) %C(green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''│           └─ %C(reset)%s %C(dim white)<%an>'
+	lg2 = log -n 30 --all --date=format-local:'%d.%m.%Y' --pretty=tformat:'├─ %C(bold magenta)%ad%C(reset) ─┐  %C(bold blue)[%h] %C(reset)%C(cyan)%an %C(green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''│              └─ %C(reset)%s'
 	save = stash push
 	pop = stash pop
 	amend = commit --amend -m
