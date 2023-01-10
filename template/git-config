@@ -1,69 +1,70 @@
 [init]
-	defaultBranch = main
+  defaultBranch = main
 [core]
-	editor = code --wait --new-window
-	### adds the --no-ff flag when merging
-	mergeoptions = --no-ff
-	### define line endings when committing
-	autocrlf = input
-	eol = lf
+  editor = code --wait --new-window
+  ### adds the --no-ff flag when merging
+  mergeoptions = --no-ff
+  ### define line endings when committing
+  autocrlf = input
+  eol = lf
   ### ignore chmod changes on files and directory to avoid permission issues
-	fileMode = false
+  fileMode = false
 [commit]
-	verbose = true # lets you see the changes while typing the commit message
+  verbose = true # lets you see the changes while typing the commit message
 [pull]
-	### automatically rebase when pulling (git >= 1.7.9)
-	rebase = true
+  ### automatically rebase when pulling (git >= 1.7.9)
+  rebase = true
 [branch]
-	### automatically rebase when pulling (git < 1.7.9)
-	autosetuprebase = always
+  ### automatically rebase when pulling (git < 1.7.9)
+  autosetuprebase = always
 [push]
   ### sets the push method to simple for older git versions
-	default = simple
+  default = simple
 [help]
-	### executes next known command (wait 2 seconds till execution)
-	autocorrect = 20
+  ### executes next known command (wait 2 seconds till execution)
+  autocorrect = 20
 [color]
-	branch = auto
-	diff = auto
-	status = auto
+  branch = auto
+  diff = auto
+  status = auto
 [color "branch"]
-	current = magenta bold
-	local = yellow
-	remote = green
+  current = magenta bold
+  local = yellow
+  remote = green
 [color "diff"]
-	meta = yellow bold
-	frag = magenta bold
-	old = red bold
-	new = green bold
+  meta = yellow bold
+  frag = magenta bold
+  old = red bold
+  new = green bold
 [color "status"]
-	added = yellow
-	changed = green
-	untracked = cyan
+  added = yellow
+  changed = green
+  untracked = cyan
 [alias]
   # "!" in aliases runs any external command outside of GIT
-	st = status -s
-	co = checkout
-	cob = checkout -b
-	del = branch -D
-	# get current branch name
-	gb = !git branch | grep '^\\*' | cut -d' ' -f2
-	# show latest commit
-	lbr = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) %(color:bold blue)<%(authorname)>' --sort=-committerdate
-	# unstage all your stages files
-	unstage = reset --soft HEAD^
-	# revert the last commit, keep the changes
-	undo = reset HEAD~1 --mixed
-	# revert all local changes
-	drop = !git reset --hard
-	# log
-	l = log -n 30 --all --topo-order --pretty=tformat:'%C(bold magenta)%h%C(bold yellow)%d%C(white) %s %C(reset)%C(green)(%cr)'
-	lg = log -n 30 --all --date=format-local:'%b %d. %Y %T (Week %W)' --pretty=tformat:'├─ %C(bold magenta)%h%C(reset) ─┐  %C(cyan)%ad%C(reset) %C(green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''│           └─ %C(reset)%s %C(dim white)<%an>'
-	lg2 = log -n 30 --all --date=format-local:'%d.%m.%Y' --pretty=tformat:'├─ %C(bold magenta)%ad%C(reset) ─┐  %C(bold blue)[%h] %C(reset)%C(cyan)%an %C(green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''│              └─ %C(reset)%s'
-	save = stash push
-	pop = stash pop
-	amend = commit --amend -m
-	gl = !git config --global -l
-	aliases = config --get-regexp alias
-	# search in commits | provide search term
-	se = !git rev-list --all | xargs git grep -F
+  st = status -s
+  co = checkout
+  cob = checkout -b
+  # delete local branch
+  del = branch -D
+  # get current branch name
+  gb = !git branch | grep '^\\*' | cut -d' ' -f2
+  # show latest commit
+  lbr = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) %(color:dim white )<%(authorname)>' --sort=-committerdate
+  # unstage all your stages files
+  unstage = reset --soft HEAD^
+  # revert the last commit, keep the changes
+  undo = reset HEAD~1 --mixed
+  # revert all local changes
+  drop = !git reset --hard
+  # log
+  l = log -n 30 --all --topo-order --pretty=tformat:'%C(magenta)%h%C(yellow)%d%C(reset)%C(white) %s %C(reset)%C(green)(%cr)'
+  lg = log -n 30 --all --date=format-local:'%b %d. %Y %T (Week %W)' --pretty=tformat:'├─ %C(magenta)%h%C(reset) ─┐  %C(green)%ad%C(reset) %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)%n''│           └─ %C(reset)%s %C(dim white)<%an>'
+  lg2 = log -n 30 --all --date=format-local:'%d.%m.%Y' --pretty=tformat:'├─ %C(green)%ad%C(reset) ─┐  %C(magenta)[%h] %C(reset)%C(cyan)%an %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)%n''│              └─ %C(reset)%s'
+  save = stash push
+  pop = stash pop
+  amend = commit --amend -m
+  gl = !git config --global -l
+  aliases = config --get-regexp alias
+  # search in commits | provide search term
+  se = !git rev-list --all | xargs git grep -F
