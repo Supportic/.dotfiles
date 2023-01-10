@@ -42,6 +42,15 @@ function isFalse() {
   return 1
 }
 
+# checks if current or a given user is in group
+# usage:
+# if ingroup $1; then
+#   echo 'yes'
+# else
+#   echo 'no'
+# fi
+function ingroup(){ [[ " `id -Gn ${2-}` " == *" $1 "* ]]; }
+
 # Print error message to STDERR and exit
 function die() {
   local RED=$(echo -en '\033[00;31m')
