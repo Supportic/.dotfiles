@@ -51,6 +51,9 @@ function isFalse() {
 # fi
 function ingroup(){ [[ " `id -Gn ${2-}` " == *" $1 "* ]]; }
 
+# returns the user of a provided UID
+function user_of_id(){ awk -v val=${1:-1000} -F ":" '$3==val{print $1}' /etc/passwd; }
+
 # Print error message to STDERR and exit
 function die() {
   local RED=$(echo -en '\033[00;31m')
