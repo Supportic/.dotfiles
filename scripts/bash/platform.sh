@@ -1,8 +1,7 @@
 #!/bin/bash
-set -euo pipefail
 
 # call functions from terminal: 
-# bash -c ". ~/.dotfiles/installer/includes/_tools.sh && detect_platform"
+# bash -c ". ~/.dotfiles/scripts/bash/platform.sh && is_wsl && echo true || echo false"
 
 function is_wsl() {
 	case "$(uname -r)" in
