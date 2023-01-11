@@ -58,9 +58,8 @@
   # revert all local changes
   drop = !git reset --hard
   # log
-  l = log -n 30 --all --topo-order --pretty=tformat:'%C(magenta)%h%C(yellow)%d%C(reset)%C(white) %s %C(reset)%C(green)(%cr)'
-  lg = log -n 30 --all --date=format-local:'%b %d. %Y %T (Week %W)' --pretty=tformat:'├─ %C(magenta)%h%C(reset) ─┐  %C(green)%ad%C(reset) %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)%n''│           └─ %C(reset)%s %C(dim white)<%an>'
-  lg2 = log -n 30 --all --date=format-local:'%d.%m.%Y' --pretty=tformat:'├─ %C(green)%ad%C(reset) ─┐  %C(magenta)[%h] %C(reset)%C(cyan)%an %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)%n''│              └─ %C(reset)%s'
+  l = log -n 30 --all --topo-order --pretty=tformat:'%C(bold red)%h%C(reset)%C(bold 11)%d %C(reset)%s %C(reset)%C(green)(%cr)'
+  lg = log -n 30 --all --date=format-local:'%b %d %Y %T' --pretty=tformat:'○ %C(bold red)%h%C(reset) - %C(green)%ad%C(reset) %C(green)(%ar)%C(reset)%C(bold 11)%d%C(reset)%n  %C(reset)%s %C(dim white)- %cn%n'
   save = stash push
   pop = stash pop
   amend = commit --amend -m
