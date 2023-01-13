@@ -7,6 +7,7 @@ alias zshconfig="code --new-window \
 "
 alias sshconfig="code --new-window ~/.ssh/config"
 alias hostconfig="sudo nano /etc/hosts"
+alias gitconfig="code --new-window ~/.gitconfig ~/.gitignore"
 
 alias grep="grep --color=auto"
 

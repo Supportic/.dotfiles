@@ -9,6 +9,7 @@
   eol = lf
   ### ignore chmod changes on files and directory to avoid permission issues
   fileMode = false
+  excludesfile = ~/.gitignore
 [commit]
   verbose = true # lets you see the changes while typing the commit message
 [pull]

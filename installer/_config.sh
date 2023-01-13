@@ -12,14 +12,15 @@ function setup_git() {
     local current_username="$(git config --global --get user.name)"
     local current_email="$(git config --global --get user.email)"
     # override
-    sudo cp -pu ${TEMPLATE_DIR}/git-config "${DOTFILES_DIR}/.gitconfig" || die "Unable to copy file: ${TEMPLATE_DIR}/git-config -> ${DOTFILES_DIR}/.gitconfig"
+    sudo cp -pu "${TEMPLATE_DIR}/git-config" "${DOTFILES_DIR}/.gitconfig" || die "Unable to copy file: ${TEMPLATE_DIR}/git-config -> ${DOTFILES_DIR}/.gitconfig"
     git config --global user.name "${current_username}"
     git config --global user.email "${current_email}"
   else
     sudo cp -pu "${TEMPLATE_DIR}/git-config" "${DOTFILES_DIR}/.gitconfig" || die "Unable to copy file: ${TEMPLATE_DIR}/git-config -> ${DOTFILES_DIR}/.gitconfig"
   fi
-  
+
   ln -sfn "${DOTFILES_DIR}/.gitconfig" ~/.gitconfig 2> /dev/null
+  ln -sfn "${DOTFILES_DIR}/gitignore" ~/.gitignore 2> /dev/null
 }
 
 function setup_zsh() {

@@ -1,0 +1,10 @@
+# IDE
+.vscode/
+.idea/
+
+# Mac
+.DS_Store
+
+# General
+log/
+*.log
