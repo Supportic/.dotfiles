@@ -32,6 +32,7 @@ function setup_zsh() {
   ln -sfn "${DOTFILES_DIR}/.zshenv" ~/.zshenv
   ln -sfn "${DOTFILES_DIR}/.zshrc" ~/.zshrc
   ln -sfn "${DOTFILES_DIR}/.zlogout" ~/.zlogout
+  ln -sfn "${DOTFILES_DIR}/.zprofile" ~/.zprofile
   ln -sfn "${DOTFILES_DIR}/.p10k.zsh" ~/.p10k.zsh
   ln -sfn "${DOTFILES_DIR}/.p10k-intellij.zsh" ~/.p10k-intellij.zsh
 }
