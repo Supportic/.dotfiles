@@ -126,10 +126,13 @@ function myip() {
 
   local local_ipv4=$(ip -4 route get 1.1.1.1 | sed -n 's/^.*src \([0-9.]*\).*$/\1/p')
   local local_ipv6=$(ip address show ${local_interface} | perl -nwe 'print /^\s+inet6\s+(.*?)\//;')
+  local windows_wsl_ip=$(ip route | awk '/^default/ {print $3}')
 
   printf "local IPv4 [%s]: \t%s\n" ${local_interface} ${local_ipv4}
   [ -z "${local_ipv6}" ] && local_ipv6="n/a"
-  printf "local IPv6 [%s]: \t%s\n" ${local_interface} ${local_ipv6} || 
+  printf "local IPv6 [%s]: \t%s\n" ${local_interface} ${local_ipv6}
+  [ -z "${windows_wsl_ip}" ] && windows_wsl_ip="n/a"
+  printf "Windows WSL: \t\t%s\n" ${windows_wsl_ip}
 }
 
 ##### DOCKER
