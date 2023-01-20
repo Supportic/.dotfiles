@@ -118,7 +118,7 @@ function myip() {
 
   local public_ip=$(dig +short myip.opendns.com @resolver1.opendns.com)
   [ -z "${public_ip}" ] && public_ip=$(dig +short txt ch whoami.cloudflare @1.1.1.1) && public_provider="cloudflare"
-  [ -z "${public_ip}" ] && public_ip=$(dig +short txt o-o.myaddr.test.l.google.com @ns1.google.com) && public_provider="goggle"
+  [ -z "${public_ip}" ] && public_ip=$(dig +short txt o-o.myaddr.test.l.google.com @ns1.google.com) && public_provider="google"
   [ -z "${public_ip}" ] && public_ip=$(curl -s https://ifconfig.me) && public_provider="ifconfig.me"
   [ -z "${public_ip}" ] && public_ip=$(curl -s https://icanhazip.com) && public_provider="iconhazip.com"
   [ -z "${public_ip}" ] && public_ip=$(curl -s https://ipinfo.io/ip) && public_provider="ipinfo.io"
@@ -126,13 +126,13 @@ function myip() {
 
   local local_ipv4=$(ip -4 route get 1.1.1.1 | sed -n 's/^.*src \([0-9.]*\).*$/\1/p')
   local local_ipv6=$(ip address show ${local_interface} | perl -nwe 'print /^\s+inet6\s+(.*?)\//;')
-  local windows_wsl_ip=$(ip route | awk '/^default/ {print $3}')
+  local default_gateway=$(ip route show default | awk '/^default/ {print $3}')
 
   printf "local IPv4 [%s]: \t%s\n" ${local_interface} ${local_ipv4}
   [ -z "${local_ipv6}" ] && local_ipv6="n/a"
   printf "local IPv6 [%s]: \t%s\n" ${local_interface} ${local_ipv6}
-  [ -z "${windows_wsl_ip}" ] && windows_wsl_ip="n/a"
-  printf "Windows WSL: \t\t%s\n" ${windows_wsl_ip}
+  [ -z "${default_gateway}" ] && default_gateway="n/a"
+  printf "Default Gateway: \t%s\n" ${default_gateway}
 }
 
 ##### DOCKER
