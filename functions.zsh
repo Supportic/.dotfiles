@@ -95,7 +95,7 @@ function weather() {
         city="Berlin"
     fi
 
-    eval "curl http://wttr.in/${city}"
+    curl "https://wttr.in/${city}"
 }
 
 
