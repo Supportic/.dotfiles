@@ -100,6 +100,7 @@ function install_language() {
   local en
   local lang_to_install
 
+  lang_to_install=""
   de_locale="de_DE.utf8" en_locale="en_US.utf8"
   de="de_DE.UTF-8" en="en_US.UTF-8"
   # add to language list when lang wasn't found
