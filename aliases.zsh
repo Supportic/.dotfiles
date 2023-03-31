@@ -12,11 +12,11 @@ alias gitconfig="code --new-window ~/.gitconfig ~/.gitignore"
 alias grep="grep --color=auto"
 
 ## always ask with -i flag before you delete or move
-# alias -g rmdir="rm -r -i"
-# alias -g rm="rm -i"
-# alias -g mv="mv -i"
+alias -g rmdir="rm -r -I"
+alias -g rm="rm -I"
+# alias -g mv="mv -I"
 ## Safely trash files
-[ -x "$(command -v trash)" ] && alias rm=trash
+# [ -x "$(command -v trash)" ] && alias rm=trash
 alias python=python3
 [ -x "$(command -v bat)" ] && alias cat=bat
 
