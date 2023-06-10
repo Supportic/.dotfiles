@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
 ###################################################### env variables
 # only available in this script, not permanent
@@ -12,28 +12,22 @@ export USER="${USER:-"$(whoami)"}"
 
 # base dir
 # DOTFILES_DIR=$(dirname "${PWD}")
-DOTFILES_DIR=$(dirname "$dir")
-readonly DOTFILES_DIR
+readonly DOTFILES_DIR=$(dirname "$currentDir")
 
 # Templates
-TEMPLATE_DIR="${DOTFILES_DIR}/template"
-readonly TEMPLATE_DIR
+readonly TEMPLATE_DIR="${DOTFILES_DIR}/template"
 
 # Timezone
-TZ="Europe/Berlin"
-readonly TZ
+readonly TZ="Europe/Berlin"
 
 # Binaries local directory
-LOCAL_BIN_DIR="${HOME}/bin"
-readonly LOCAL_BIN_DIR
+readonly LOCAL_BIN_DIR="${HOME}/bin"
 
 # Scripts local directory
-LOCAL_SCRIPTS_DIR="${LOCAL_BIN_DIR}/scripts"
-readonly LOCAL_SCRIPTS_DIR
+readonly LOCAL_SCRIPTS_DIR="${LOCAL_BIN_DIR}/scripts"
 
 # Fonts local directory
-LOCAL_FONTS_DIR="${HOME}/.fonts"
-readonly LOCAL_FONTS_DIR
+readonly LOCAL_FONTS_DIR="${HOME}/.fonts"
 
 # check if in WSL (every docker container created from WSL regardless of the base image)
 IN_WSL=false

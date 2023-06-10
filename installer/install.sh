@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # https://stackoverflow.com/questions/59895/how-do-i-get-the-directory-where-a-bash-script-is-located-from-within-the-script
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
 # shellcheck source=./_config.sh
-. "${dir}"/_config.sh
+. "${currentDir}"/_config.sh
 
 printf "This script will configure your Linux machine and install the following programs: 
 - zsh / exa / bat / btop / trash-cli / pigz
@@ -51,6 +51,7 @@ function install_git() {
     sudo apt update &&\
     sudo apt-get -y install git
 
+  # _config.sh
   setup_git
 }
 
@@ -62,18 +63,15 @@ function install_fonts() {
 
   if [ ! -d "${LOCAL_FONTS_DIR}/JetBrains Mono" ]; then
     # Generate temporary filename
-    local TEMP_LATEST_INFO
-    TEMP_LATEST_INFO=$(mktemp)
-    local FONTS_TEMPFILE
-    FONTS_TEMPFILE=$(mktemp)
+    local LATEST_INFO_TEMPFILE FONTS_TEMPFILE TAG_NAME BROWSER_URL
+    LATEST_INFO_TEMPFILE="$(mktemp)"
+    FONTS_TEMPFILE="$(mktemp)"
     # Latest fonts release info in JSON
-    local LATEST_RELEASE_INFO="https://api.github.com/repos/JetBrains/JetBrainsMono/releases/latest"
-    echo "Downloading latest release info: ${LATEST_RELEASE_INFO}"
-    download "${LATEST_RELEASE_INFO}" "${TEMP_LATEST_INFO}"
-    local TAG_NAME
-    TAG_NAME=$(get_item "tag_name" "${TEMP_LATEST_INFO}")
-    local BROWSER_URL
-    BROWSER_URL=$(get_item "browser_download_url" "${TEMP_LATEST_INFO}")
+    local LATEST_RELEASE_URL="https://api.github.com/repos/JetBrains/JetBrainsMono/releases/latest"
+    echo "Downloading latest release info: ${LATEST_RELEASE_URL}"
+    download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
+    TAG_NAME=$(get_item "tag_name" "${LATEST_INFO_TEMPFILE}")
+    BROWSER_URL=$(get_item "browser_download_url" "${LATEST_INFO_TEMPFILE}")
     echo "Latest fonts version: ${TAG_NAME}"
 
     echo "Downloading fonts archive: ${BROWSER_URL}"
@@ -82,7 +80,7 @@ function install_fonts() {
     extract "${FONTS_TEMPFILE}" "${LOCAL_FONTS_DIR}/JetBrains Mono"
 
     echo "Cleaning up..."
-    cleanup "${TEMP_LATEST_INFO}"
+    cleanup "${LATEST_INFO_TEMPFILE}"
     cleanup "${FONTS_TEMPFILE}"
   fi
 
@@ -124,24 +122,22 @@ function install_zsh() {
   if [ -z "$(command -v zsh | sudo tee -a /etc/shells])" ] || [ ! -d ~/.oh-my-zsh ]; then
     sudo apt-get -y install zsh
     # unattended -> not trying to change the default shell, and it also won't run zsh when the installation has finished.
-    bash -c "$(download https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    download "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh" | bash /dev/stdin --unattended
 
     # remove not used stuff
-    local exclude_ext
-    local dir
-    local dirname
+    local exclude_ext pluginDir pluginDirName
 
     exclude_ext=(git)
 
-    rm -rf $HOME/.oh-my-zsh/themes/*
-    for dir in ~/.oh-my-zsh/plugins/*; do
-      dirname="$(basename ${dir})"
+    rm -rf "$HOME"/.oh-my-zsh/themes/*
+    for pluginDir in ~/.oh-my-zsh/plugins/*; do
+      pluginDirName="$(basename "${pluginDir}")"
       # NOTE: invert by removing !
-      if [ -d $dir ] && [[ ! " ${exclude_ext[*]} " =~ " ${dirname} " ]]; then
-        rm -rf $dir
+      if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
+        rm -rf "${pluginDir}"
       fi
     done
-    printf "\n# custom injected\n/themes\n/plugins\n" >> $HOME/.oh-my-zsh/.gitignore
+    printf "\n# custom injected\n/themes\n/plugins\n" >> "$HOME"/.oh-my-zsh/.gitignore
 
     # install theme 
     git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
@@ -150,7 +146,8 @@ function install_zsh() {
     git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
     git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
     # replace string to avoid console output
-    sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl"  > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open/git-open
+    # shellcheck disable=SC2016
+    sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl" > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open/git-open
   else
     printf "Skipping: zsh already installed.\n"
   fi
@@ -170,9 +167,8 @@ function install_ssh() {
 # trash better rm
 function install_utils() {
   if ! command_exists "exa"; then
-    local EXA_TEMPFILE
+    local EXA_TEMPFILE EXA_VERSION
     EXA_TEMPFILE=$(mktemp)
-    local EXA_VERSION
     EXA_VERSION=$(download "https://api.github.com/repos/ogham/exa/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
     download "https://github.com/ogham/exa/releases/latest/download/exa-linux-x86_64-v${EXA_VERSION}.zip" "${EXA_TEMPFILE}"
     # -> /usr/local/bin/exa
@@ -181,9 +177,8 @@ function install_utils() {
   fi
 
   if ! command_exists "bat"; then
-    local BAT_TEMPDIR
+    local BAT_TEMPDIR BAT_VERSION
     BAT_TEMPDIR=$(mktemp -d)
-    local BAT_VERSION
     BAT_VERSION=$(download "https://api.github.com/repos/sharkdp/bat/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
     
     download "https://github.com/sharkdp/bat/releases/latest/download/bat_${BAT_VERSION}_amd64.deb" "${BAT_TEMPDIR}"/bat_"${BAT_VERSION}"_amd64.deb
@@ -245,6 +240,7 @@ function install_main() {
   install_ssh
 
   # cannot be installed inside of another container
+  # shellcheck disable=SC2154
   if isFalse "${nointeractive}" || isFalse "${nodocker}"; then
     install_docker
   fi

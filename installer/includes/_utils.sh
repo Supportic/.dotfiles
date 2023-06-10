@@ -46,7 +46,7 @@ function isFalse() {
 function die() {
   local RED=$(echo -en '\033[00;31m')
   local RESTORE=$(echo -en '\033[0m')
-  echo >&2 "${RED}$*${RESTORE}"
+  echo >&2 "${RED}${*}${RESTORE}"
   exit 1
 }
 
@@ -74,32 +74,40 @@ function get_item() {
   awk -F '"' "/${item}/ {print \$4}" "${read_from}"
 }
 
-# check if a binary is installed
+# general: check if a binary/function is defined by system or in script
 function command_exists() {
-  [ ! -z "$(command -v $1)" ]
+  [ ! -z "$(command -v "${1}")" ]
 }
-
-function str_length() {
-    local strLen oLang=${LANG-} oLcAll=${LC_ALL-}
-    LANG=C.UTF-8 LC_ALL=C.UTF-8
-    strLen=${#1}
-    LANG=${oLang} LC_ALL=${oLcAll}
-    echo ${strLen}
+# specific: is the command defined in a script
+function script_command_exists() {
+  # appended double quote to make sure we do get a string
+  # if $1 is not a known command, type does not output anything
+  [ `type -t ${1}`"" == 'function' ]
 }
-
-function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
+# specific: is the command defined on the system
+function system_command_exists(){
+  [ ! -z $(which "${1}") ]
+}
 
 function print_info() {
+  function str_length() {
+    local strLen oLang="${LANG-}" oLcAll="${LC_ALL-}"
+    LANG="C.UTF-8" LC_ALL="C.UTF-8"
+    strLen="${#1}"
+    LANG="${oLang}" LC_ALL="${oLcAll}"
+    echo ${strLen}
+  }
+  function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
+
   msg="$1"
-  msgLength=$(str_length "__$1__")
-  divider=$(repeat '#' ${msgLength})
+  msgLength=$(str_length "__${1}__")
+  divider=$(repeat '#' "${msgLength}")
   
   printf "\n%s\n# ${msg} \n%s\n\n" "${divider}" "${divider}"
 }
 
 # Download URL
 function download() {
-
   local url="${1-}"
   local save_as="${2-}"
 
@@ -112,6 +120,8 @@ function download() {
 }
 
 function curl() {
+  system_command_exists "curl" || die "Please install curl."
+
   command curl -fsSL --retry 3 "$@"
 }
 

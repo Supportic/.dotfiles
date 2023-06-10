@@ -15,12 +15,17 @@
 [pull]
   ### automatically rebase when pulling (git >= 1.7.9)
   rebase = true
-[branch]
-  ### automatically rebase when pulling (git < 1.7.9)
-  autosetuprebase = always
+  autoStash = true
 [push]
   ### sets the push method to simple for older git versions
   default = simple
+[rebase]
+  autoStash = true
+[merge]
+  autoStash = true
+[branch]
+  ### automatically rebase when pulling (git < 1.7.9)
+  autosetuprebase = always
 [help]
   ### executes next known command (wait 2 seconds till execution)
   autocorrect = 20

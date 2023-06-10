@@ -1,10 +1,21 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
+# set -x
 
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-. "${dir}"/_config.sh
+. "${currentDir}"/_config.sh
 
 sudo -v
 
 # test things here
+
+exclude_ext=(git)
+
+for pluginDir in ~/.oh-my-zsh/plugins/*; do
+  pluginDirName="$(basename "${pluginDir}")"
+  # NOTE: invert by removing !
+  if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
+    echo "${pluginDir}"
+  fi
+done

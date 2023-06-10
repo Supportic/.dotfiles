@@ -8,3 +8,10 @@
 # General
 log/
 *.log
+
+# Node
+node_modules/
+
+# PHP
+vendor/
+var/

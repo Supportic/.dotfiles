@@ -5,18 +5,15 @@ alias zshconfig="code --new-window \
   ~/.oh-my-zsh/custom/functions.zsh \
   ~/.zshenv
 "
-alias sshconfig="code --new-window ~/.ssh/config"
+alias sshconfig="code --new-window ~/.ssh"
 alias hostconfig="sudo nano /etc/hosts"
 alias gitconfig="code --new-window ~/.gitconfig ~/.gitignore"
 
 alias grep="grep --color=auto"
 
-## always ask with -i flag before you delete or move
-alias -g rmdir="rm -r -I"
-alias -g rm="rm -I"
-# alias -g mv="mv -I"
 ## Safely trash files
 # [ -x "$(command -v trash)" ] && alias rm=trash
+
 alias python=python3
 [ -x "$(command -v bat)" ] && alias cat=bat
 
@@ -28,8 +25,13 @@ alias week='date +%V'
 alias gbc="current_branch | clipcopy"
 
 # URL-encode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L130)
-alias urlformencode='omz_urlencode'
-[ -x "$(command -v omz_urlencode)" ] && alias urlencode="omz_urldecode -P" || alias urlencode="python -c \"import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]));\""
+if [ -x "$(command -v omz_urlencode)" ]; then
+  alias urlformencode='omz_urlencode';
+  alias urlencode="omz_urldecode -P"
+else
+  alias urlencode="python -c \"import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]));\""
+fi
+
 # URL-decode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L211)
 [ -x "$(command -v omz_urldecode)" ] && alias urldecode="omz_urldecode" || alias urldecode="python -c \"import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]));\""
 
@@ -65,5 +67,5 @@ else
   alias ll='ls -alF'
   alias la='ls -A'
   alias l='ls -CF'
-  alias lt='tree -aC -I ".git|node_modules|bower_components" -L 2 --dirsfirst'
+  alias lt='tree -aC -I ".git|node_modules|bower_components|vendor" -L 2 --dirsfirst'
 fi

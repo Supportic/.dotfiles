@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-. "${dir}"/includes/_parseArguments.sh "$@"
-. "${dir}"/includes/_const.sh
-. "${dir}"/includes/_utils.sh
+. "${currentDir}"/includes/_parseArguments.sh "$@"
+. "${currentDir}"/includes/_const.sh
+. "${currentDir}"/includes/_utils.sh
 
 function setup_git() {
   if [ -f "${DOTFILES_DIR}/.gitconfig" ]; then
@@ -19,8 +19,10 @@ function setup_git() {
     sudo cp -pu "${TEMPLATE_DIR}/git-config" "${DOTFILES_DIR}/.gitconfig" || die "Unable to copy file: ${TEMPLATE_DIR}/git-config -> ${DOTFILES_DIR}/.gitconfig"
   fi
 
+  # config 
   ln -sfn "${DOTFILES_DIR}/.gitconfig" ~/.gitconfig 2> /dev/null
-  ln -sfn "${DOTFILES_DIR}/gitignore" ~/.gitignore 2> /dev/null
+  # ignore 
+  ln -sfn "${TEMPLATE_DIR}/gitignore" ~/.gitignore 2> /dev/null
 }
 
 function setup_zsh() {
@@ -52,7 +54,7 @@ function setup_scripts() {
 
   rm -f "${LOCAL_SCRIPTS_DIR}"/*
 
-  local script=
+  local script
   # for script in ${DOTFILES_DIR}/bin/* ${DOTFILES_DIR}/bin/**/*; do
   for script in $(find "${DOTFILES_DIR}"/bin -name "*.sh"); do
     if [ -f $script ]; then
