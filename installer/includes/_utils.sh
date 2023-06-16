@@ -2,7 +2,31 @@
 set -euo pipefail
 
 # call functions from terminal: 
-# bash -c ". ~/.dotfiles/installer/includes/_utils.sh && print_info 'hello world'"
+# bash -c ". ~/.dotfiles/installer/includes/_utils.sh && print_info_banner 'hello world'"
+
+currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+# installs apt packages if doesn't exist (root user required)
+# usage: install_packages curl ca-certificates
+function install_packages() {
+  if ! dpkg -s $@ >/dev/null 2>&1; then
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+      sudo apt-get update
+    fi
+    sudo DEBIAN_FRONTEND="noninteractive" apt-get -y install --no-install-recommends $@
+  fi
+}
+# make sure that packages or programs are installed before use
+# usage: ensure_packages locales tzdata
+function ensure_packages() {
+  local packages=($@)
+  local install=""
+  for package in "${packages[@]}"; do
+    ! system_command_exists "${package}" && [ ! "$(dpkg -s "${package}" >/dev/null 2>&1)" ] && install="${install} ${package}"
+  done
+
+  [ -n "${install}" ] && install_packages "${install}"
+}
 
 # $1 = time difference in ms
 function displaytime() {
@@ -42,36 +66,86 @@ function isFalse() {
   return 1
 }
 
+# colors https://stackoverflow.com/a/5947802
+# Print log message
+function log() {
+  printf "$*\n"
+}
+# Print error message (redirect output to STDERR)
+function failure() {
+  local RED='\033[00;31m'
+  local RESTORE='\033[0m'
+  printf >&2 "${RED}$*${RESTORE}\n"
+}
+# Print success message to STDERR
+function success() {
+  local BGREEN='\033[01;32m'
+  local RESTORE='\033[0m'
+  printf "${BGREEN}$*${RESTORE}\n"
+}
+# Print info message to STDERR
+function info() {
+  local BLUE='\033[00;34m'
+  local RESTORE='\033[0m'
+  printf "${BLUE}$*${RESTORE}\n"
+}
 # Print error message to STDERR and exit
 function die() {
-  local RED=$(echo -en '\033[00;31m')
-  local RESTORE=$(echo -en '\033[0m')
-  echo >&2 "${RED}${*}${RESTORE}"
+  failure "$*"
   exit 1
+}
+function print_info_banner() {
+  function str_length() {
+    local strLen oLang="${LANG-}" oLcAll="${LC_ALL-}"
+    LANG="C.UTF-8" LC_ALL="C.UTF-8"
+    strLen="${#1}"
+    LANG="${oLang}" LC_ALL="${oLcAll}"
+    echo ${strLen}
+  }
+  function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
+
+  msg="$1"
+  msgLength=$(str_length "__${1}__")
+  divider=$(repeat '#' "${msgLength}")
+  
+  info "$(printf "\n%s\n# ${msg} \n%s" "${divider}" "${divider}")\n"
 }
 
 function extract() {
+  system_command_exists "unzip" || die "Please install unzip."
 
-  local archive="${1}"
-  local extract_to="${2}"
+  local archive="${1-}"
+  local extract_to="${2-}"
 
   unzip -qo "${archive}" -d "${extract_to}" >/dev/null 2>&1
 }
 
-# Remove temporary file
+# Remove files or directories
 function cleanup() {
-  if [ -f "${1}" ]; then
-    unlink "${1}" || die "Unable to unlink: ${1}"
-  else
-    rm -r "${1}" || die "Unable to remove: ${1}"
-  fi
+  for item in "$@"; do
+    if [ -f "${item}" ]; then
+      unlink "${item}" || die "Unable to unlink: ${item}"
+    elif [ -d "${item}" ]; then
+      rm -r "${item}" || die "Unable to remove: ${item}"
+    fi
+  done
 }
 
-# Get item from latest release data
-function get_item() {
-  local item="${1}"
-  local read_from="${2}"
-  awk -F '"' "/${item}/ {print \$4}" "${read_from}"
+# Get item from latest json release data
+# when there are multiple occurances of that json key => put parenthesis around the call to create an array
+# var=($(get_json_value "key" "$(cat "${file}")")) => "${var[2]}"
+function get_json_value() {
+  local key="${1-}"
+  local read_from="${2-}"
+  
+  # input is file or string
+  if [ -f "${read_from}" ]; then
+    value=$(awk -F '"' "/${key}/ {print \$4}" "${read_from}")
+  else
+    value=$(echo "${read_from}" | awk -F '"' "/${key}/ {print \$4}")
+  fi
+  
+  echo "${value}"
 }
 
 # general: check if a binary/function is defined by system or in script
@@ -87,23 +161,6 @@ function script_command_exists() {
 # specific: is the command defined on the system
 function system_command_exists(){
   [ ! -z $(which "${1}") ]
-}
-
-function print_info() {
-  function str_length() {
-    local strLen oLang="${LANG-}" oLcAll="${LC_ALL-}"
-    LANG="C.UTF-8" LC_ALL="C.UTF-8"
-    strLen="${#1}"
-    LANG="${oLang}" LC_ALL="${oLcAll}"
-    echo ${strLen}
-  }
-  function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
-
-  msg="$1"
-  msgLength=$(str_length "__${1}__")
-  divider=$(repeat '#' "${msgLength}")
-  
-  printf "\n%s\n# ${msg} \n%s\n\n" "${divider}" "${divider}"
 }
 
 # Download URL
@@ -124,7 +181,3 @@ function curl() {
 
   command curl -fsSL --retry 3 "$@"
 }
-
-# function wget() {
-# 	command wget --no-verbose --timeout=10 --show-progress --progress=bar:force:noscroll "$@"
-# }

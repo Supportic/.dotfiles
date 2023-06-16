@@ -7,6 +7,7 @@ currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 # only available in this script, not permanent
 
 export USER="${USER:-"$(whoami)"}"
+export HOME="$(getent passwd $SUDO_USER | cut -d: -f6)"
 
 ###################################################### variables
 

@@ -19,15 +19,10 @@ function check_preconditions() {
   [ -n "${install}" ] && install_packages "${install}"
 }
 
-function config_main(){
-  symlink_git_config
-  symlink_zsh_config
-  symlink_ssh_config
+function install_symlinks() {
+  # _config.sh
   symlink_scripts
-
-  configure_git
-  command_exists "zsh" && zsh -c "source ~/.zshrc"
 }
 
 check_preconditions
-config_main
+install_symlinks

@@ -7,7 +7,9 @@ assert_argument () { test "$1" != "$EOL" || usage_error "$2 requires an argument
 
 # defaults
 nointeractive="false"
-nodocker="false"
+install_essentials="false"
+install_tools="false"
+install_symlinks="false"
 
 # One loop, nothing more.
 if [ "$#" != 0 ]; then
@@ -19,7 +21,9 @@ if [ "$#" != 0 ]; then
 
       # Your options go here. If provided then set value.
       -ni|--nointeractive) nointeractive="true";;
-      -nd|--nodocker) nodocker="true";;
+      --sync) install_symlinks="true";;
+      --essentials) install_essentials="true";;
+      --tools) install_tools="true";;
 
       # Arguments processing. You may remove any unneeded line after the 1st.
       -|''|[!-]*) set -- "$@" "$opt";;                                          # positional argument, rotate to the end
