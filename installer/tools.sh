@@ -3,22 +3,22 @@ set -euo pipefail
 
 currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-# shellcheck source=./_config.sh
-. "${currentDir}"/_config.sh
-
+# shellcheck source=./includes/_functions.sh
+. "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  [ "$(id -u)" -ne 0 ] && die "Please execute script with sudo permissions."
+  ! isRoot && die "Please execute script with sudo permissions."
   
   local packages=("curl" "unzip" "tar" "bzip2" "ca-certificates")
-  local install=""
+  local packagesToInstall=""
   for package in "${packages[@]}"; do
-    ! system_command_exists "${package}" && [ ! "$(dpkg -s "${package}" >/dev/null 2>&1)" ] && install="${install} ${package}"
+    ! system_command_exists "${package}" && ! package_exists "${package}" && packagesToInstall="${packagesToInstall} ${package}"
   done
 
-  [ -n "${install}" ] && install_packages "${install}"
+  if [ -n "${packagesToInstall}" ]; then
+    install_packages "${packagesToInstall}"
+  fi
 }
-
 
 # exa better ls (remove: sudo rm -f /usr/local/bin/exa)
 function install_exa() {
@@ -29,12 +29,12 @@ function install_exa() {
   EXA_TEMPFILE=$(mktemp)
   LATEST_INFO_TEMPFILE=$(mktemp)
 
-  echo "Downloading latest release info: ${LATEST_RELEASE_URL}"
+  log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
   EXA_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  echo "Latest exa version: ${EXA_VERSION}"
+  log "Latest exa version: ${EXA_VERSION}"
   BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  echo "Downloading exa archive: ${BROWSER_URL[3]}"
+  log "Downloading exa archive: ${BROWSER_URL[3]}"
 
   download "${BROWSER_URL[3]}" "${EXA_TEMPFILE}"
 
@@ -43,8 +43,9 @@ function install_exa() {
     cleanup "${LATEST_INFO_TEMPFILE}" "${EXA_TEMPFILE}"
     die "Could not unzip exa archive ${EXA_TEMPFILE}. Cleaning up tempfiles..."
   else
-    echo "Cleaning up exa tempfiles..."
+    log "Cleaning up exa tempfiles..."
     cleanup "${LATEST_INFO_TEMPFILE}" "${EXA_TEMPFILE}"
+    sudo chown "${USER}":"${GROUP}" "/usr/local/bin/exa"
     success "exa installed."
   fi
 }
@@ -58,12 +59,12 @@ function install_bat() {
   BAT_TEMPFILE=$(mktemp)
   LATEST_INFO_TEMPFILE=$(mktemp)
 
-  echo "Downloading latest release info: ${LATEST_RELEASE_URL}"
+  log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
   BAT_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  echo "Latest bat version: ${BAT_VERSION}"
+  log "Latest bat version: ${BAT_VERSION}"
   BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  echo "Downloading bat .deb file: ${BROWSER_URL[13]}"
+  log "Downloading bat .deb file: ${BROWSER_URL[13]}"
   
   # https://github.com/sharkdp/bat/releases/download/v0.23.0/bat_0.23.0_amd64.deb
   download "${BROWSER_URL[13]}" "${BAT_TEMPFILE}"
@@ -73,7 +74,7 @@ function install_bat() {
     cleanup "${LATEST_INFO_TEMPFILE}" "${BAT_TEMPFILE}"
     die "Could not dpkg install bat ${BAT_TEMPFILE}. Cleaning up tempfiles..."
   else
-    echo "Cleaning up exa tempfiles..."
+    log "Cleaning up exa tempfiles..."
     cleanup "${LATEST_INFO_TEMPFILE}" "${BAT_TEMPFILE}"
     success "bat installed."
   fi
@@ -89,19 +90,19 @@ function install_btop() {
   BTOP_TEMPDIR=$(mktemp -d)
   LATEST_INFO_TEMPFILE=$(mktemp)
 
-  echo "Downloading latest release info: ${LATEST_RELEASE_URL}"
+  log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
   BTOP_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  echo "Latest btop version: ${BTOP_VERSION}"
+  log "Latest btop version: ${BTOP_VERSION}"
   BROWSER_URL="https://github.com/aristocratos/btop/releases/download/${BTOP_VERSION}/btop-x86_64-linux-musl.tbz"
 
-  echo "Downloading btop archive: ${BROWSER_URL}"
+  log "Downloading btop archive: ${BROWSER_URL}"
   download "${BROWSER_URL}" "${BTOP_TEMPFILE}"
 
   sudo tar -xjf "${BTOP_TEMPFILE}" -C "${BTOP_TEMPDIR}"
   sudo cp -pu "${BTOP_TEMPDIR}"/btop/bin/btop /usr/local/bin
 
-  echo "Cleaning up btop  tempfiles..."
+  log "Cleaning up btop  tempfiles..."
   cleanup "${BTOP_TEMPFILE}" "${BTOP_TEMPDIR}" "${LATEST_INFO_TEMPFILE}"
   success "btop installed."
 }
@@ -129,4 +130,5 @@ function install_tools() {
 }
 
 check_preconditions
+sudo -v
 install_tools

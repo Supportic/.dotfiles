@@ -6,11 +6,15 @@ set -euo pipefail
 
 currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-# installs apt packages if doesn't exist (root user required)
+function isRoot(){
+  [ "${EUID:-$(id -u)}" -eq 0 ]
+}
+
+# installs apt packages if doesn't exist (root permissions required)
 # usage: install_packages curl ca-certificates
 function install_packages() {
   if ! dpkg -s $@ >/dev/null 2>&1; then
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+    if [ "$(find "/var/lib/apt/lists" -mindepth 1 -type d,f | wc -l)" = "0" ]; then
       sudo apt-get update
     fi
     sudo DEBIAN_FRONTEND="noninteractive" apt-get -y install --no-install-recommends $@
@@ -47,7 +51,7 @@ function displaytime() {
   (( $M > 0 )) && printf '%02d minutes ' $M
   (( $S > 0 )) && printf '%02d seconds ' $S
   (( $D > 0 || $H > 0 || $M > 0 || $S > 0 )) && printf 'and '
-  printf '%d milliseconds\n' "${MS:(-3)}"
+  echo "${MS:(-3)} milliseconds\n"
 }
 
 # regardless of capitalisation
@@ -103,12 +107,47 @@ function print_info_banner() {
     echo ${strLen}
   }
   function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
+  function multiline_max_length(){
+    local msg maxMsgLength line lines lineLength
 
+    # required to preserve newline characters 
+    msg=$(echo -e "$1")
+    maxMsgLength="0"
+
+    readarray -t lines <<<"$msg"
+    for line in "${lines[@]}"; do
+      lineLength=$(str_length "__${line}__")
+      if [ "$lineLength" -gt "$maxMsgLength" ];then
+        maxMsgLength="${lineLength}"
+      fi
+    done
+
+    echo $maxMsgLength
+  }
+  function multiline_prepend_symbol(){
+    local msg symbol newMsg
+
+    msg=$(echo -e "$1")
+    symbol="$2"
+    newMsg=""
+
+    readarray -t lines <<<"$msg"
+    for line in "${lines[@]}"; do
+      newMsg="${newMsg}\n${symbol} ${line}"
+    done
+
+    echo "$newMsg"
+  }
+
+  local msg symbol maxMsgLength divider
   msg="$1"
-  msgLength=$(str_length "__${1}__")
-  divider=$(repeat '#' "${msgLength}")
-  
-  info "$(printf "\n%s\n# ${msg} \n%s" "${divider}" "${divider}")\n"
+  symbol="#"
+  maxMsgLength=$(multiline_max_length "${msg}")
+
+  msg=$(multiline_prepend_symbol "${msg}" "${symbol}")
+  divider=$(repeat "${symbol}" "${maxMsgLength}")
+
+  info "$(printf "\n%s${msg} \n%s" "${divider}" "${divider}")\n"
 }
 
 function extract() {
@@ -148,19 +187,23 @@ function get_json_value() {
   echo "${value}"
 }
 
-# general: check if a binary/function is defined by system or in script
+# general: check if command is defined on the system or in the current script as function
 function command_exists() {
-  [ ! -z "$(command -v "${1}")" ]
+  [ ! -z "$(command -v "${1:-}")" ]
 }
-# specific: is the command defined in a script
+# specific: is the command defined in the current script
 function script_command_exists() {
   # appended double quote to make sure we do get a string
   # if $1 is not a known command, type does not output anything
-  [ `type -t ${1}`"" == 'function' ]
+  [ `type -t ${1:-}`"" == 'function' ]
 }
 # specific: is the command defined on the system
-function system_command_exists(){
-  [ ! -z $(which "${1}") ]
+function system_command_exists() {
+  [ ! -z $(which "${1:-}") ]
+}
+function package_exists() {
+  local status="$(dpkg-query --show --showformat='${db:Status-Status}' "${1:-}" 2>&1)"
+  [ $? -eq 0 ] && [ "${status}" = "installed" ]
 }
 
 # Download URL

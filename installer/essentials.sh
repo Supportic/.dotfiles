@@ -3,19 +3,21 @@ set -euo pipefail
 
 currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-# shellcheck source=./_config.sh
-. "${currentDir}"/_config.sh
+# shellcheck source=./includes/_functions.sh
+. "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  [ "$(id -u)" -ne 0 ] && die "Please execute script with sudo permissions."
+  ! isRoot && die "Please execute script with sudo permissions."
   
   local packages=("")
-  local install=""
+  local packagesToInstall=""
   for package in "${packages[@]}"; do
-    ! system_command_exists "${package}" && [ ! "$(dpkg -s "${package}" >/dev/null 2>&1)" ] && install="${install} ${package}"
+    ! system_command_exists "${package}" && ! package_exists "${package}" && packagesToInstall="${packagesToInstall} ${package}"
   done
 
-  [ -n "${install}" ] && install_packages "${install}"
+  if [ -n "${packagesToInstall}" ]; then
+    install_packages "${packagesToInstall}"
+  fi
 }
 
 # software-properties-common is needed for to use 'add-apt-repository' for GIT, will install python3
@@ -53,8 +55,8 @@ function install_git() {
 
 function install_fonts() {
   if [ ! -d "${LOCAL_FONTS_DIR}" ]; then
-    echo "Creating fonts directory: ${LOCAL_FONTS_DIR}"
-    mkdir -p "${LOCAL_FONTS_DIR}" >/dev/null 2>&1 || die "Unable to create fonts directory: ${LOCAL_FONTS_DIR}"
+    log "Creating fonts directory: ${LOCAL_FONTS_DIR}"
+    sudo -u "${USER}" mkdir -p "${LOCAL_FONTS_DIR}" >/dev/null 2>&1 || die "Unable to create fonts directory: ${LOCAL_FONTS_DIR}"
   fi
 
   if [ ! -d "${LOCAL_FONTS_DIR}/JetBrains Mono" ]; then
@@ -64,25 +66,25 @@ function install_fonts() {
     FONTS_TEMPFILE="$(mktemp)"
     # Latest fonts release info in JSON
     local LATEST_RELEASE_URL="https://api.github.com/repos/JetBrains/JetBrainsMono/releases/latest"
-    echo "Downloading latest release info: ${LATEST_RELEASE_URL}"
+    log "Downloading latest release info: ${LATEST_RELEASE_URL}"
     download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
     FONT_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
     BROWSER_URL=$(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}")
-    echo "Latest fonts version: ${FONT_VERSION}"
+    log "Latest fonts version: ${FONT_VERSION}"
 
-    echo "Downloading fonts archive: ${BROWSER_URL}"
+    log "Downloading fonts archive: ${BROWSER_URL}"
     download "${BROWSER_URL}" "${FONTS_TEMPFILE}"
-    echo "Extracting fonts: ${LOCAL_FONTS_DIR}"
+    log "Extracting fonts: ${LOCAL_FONTS_DIR}"
     extract "${FONTS_TEMPFILE}" "${LOCAL_FONTS_DIR}/JetBrains Mono"
 
-    echo "Cleaning up..."
+    log "Cleaning up..."
     cleanup "${LATEST_INFO_TEMPFILE}"
     cleanup "${FONTS_TEMPFILE}"
   fi
 
-  echo "Building fonts cache..."
+  log "Building fonts cache..."
   fc-cache -f || die "Unable to build fonts cache"
-  echo "Fonts have been installed"
+  success "Fonts have been installed"
 }
 
 # cat /etc/default/locale
@@ -115,19 +117,22 @@ function install_ssh() {
 }
 
 function install_zsh() {
-  if [ -z "$(command -v zsh | sudo tee -a /etc/shells)" ] || [ ! -d ~/.oh-my-zsh ]; then
+  if [ -z "$(command -v zsh | sudo tee -a /etc/shells)" ] || [ ! -d "${HOME}"/.oh-my-zsh ]; then
     install_packages "zsh"
 
     # unattended -> not trying to change the default shell, and it also won't run zsh when the installation has finished.
-    bash -c $(curl -fsSL "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh") "" --unattended
+    sudo -u "${USER}" -E bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-    # remove not used stuff
+    # change default shell
+    sudo chsh -s "$(which zsh)" "${USER}"
+
     local exclude_ext pluginDir pluginDirName
 
     exclude_ext=("git")
 
+    # remove not used stuff
     rm -rf "$HOME"/.oh-my-zsh/themes/*
-    for pluginDir in ~/.oh-my-zsh/plugins/*; do
+    for pluginDir in "${HOME}"/.oh-my-zsh/plugins/*; do
       pluginDirName="$(basename "${pluginDir}")"
       # NOTE: invert by removing !
       if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
@@ -137,19 +142,19 @@ function install_zsh() {
     printf "\n# custom injected\n/themes\n/plugins\n" >> "$HOME"/.oh-my-zsh/.gitignore
 
     # install theme 
-    git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
+    sudo -u "${USER}" git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
     # install plugins
-    git clone -q https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-autosuggestions || die "Unable to clone zsh-autosuggestions"
-    git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
-    git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
+    sudo -u "${USER}" git clone -q https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-autosuggestions || die "Unable to clone zsh-autosuggestions"
+    sudo -u "${USER}" git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
+    sudo -u "${USER}" git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
     # replace string to avoid console output
     # shellcheck disable=SC2016
     sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl" > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open/git-open
-  else
-    printf "Skipping: zsh already installed.\n"
-  fi
 
-  symlink_zsh_config
+    success "ZSH installed."
+  else
+    log "Skipping: zsh already installed."
+  fi
 }
 
 function install_essentials() {
@@ -164,4 +169,5 @@ function install_essentials() {
 }
 
 check_preconditions
+sudo -v
 install_essentials

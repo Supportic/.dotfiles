@@ -4,56 +4,53 @@ set -euo pipefail
 # https://stackoverflow.com/questions/59895/how-do-i-get-the-directory-where-a-bash-script-is-located-from-within-the-script
 currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-# shellcheck source=./_config.sh
-. "${currentDir}"/_config.sh
+# shellcheck source=./includes/_functions.sh
+. "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  [ "$(id -u)" -ne 0 ] && die "Please execute script with sudo permissions."
+  ! isRoot && die "Please execute script with sudo permissions."
 
-  info "This script will configure your Linux machine."
   if isFalse "${nointeractive}"; then
+    info "This script will configure your Linux machine."
     read -rep $'Do you want to continue? [y/n]: ' canStart
-    ([ -z "${canStart}" ] || ! isTrue "$canStart") && echo "Stopped: script exited." && exit;
-    print_info_banner "Setting up Linux..."
+    ([ -z "${canStart}" ] || ! isTrue "$canStart") && die "Script exited.";
+    print_info_banner "Setting up Linux...\nHOME=${HOME} | USER=${USER}"
   fi
-  
+
   local packages=("")
-  local install=""
+  local packagesToInstall=""
   for package in "${packages[@]}"; do
-    ! system_command_exists "${package}" && [ ! $(dpkg -s "${package}" >/dev/null 2>&1) ] && install="${install} ${package}"
+    ! system_command_exists "${package}" && ! package_exists "${package}" && packagesToInstall="${packagesToInstall} ${package}"
   done
 
-  [ -n "${install}" ] && install_packages "${install}"
+  if [ -n "${packagesToInstall}" ]; then
+    install_packages "${packagesToInstall}"
+  fi
 }
 
+# -u with user ownership, -E preserve env variables
 function install_main() {
-  if isTrue "${install_essentials}"; then
-    sudo "${currentDir}"/essentials.sh
+  if isTrue "${should_install_essentials}"; then
+    sudo -E USER="${USER}" bash "${currentDir}"/essentials.sh
   fi
 
-  # _config.sh
-  symlink_git_config
-  symlink_ssh_config
-
-  if isTrue "${install_symlinks}"; then
-    sudo "${currentDir}"/sync.sh
+  # create directory and symlinks with user permissions 
+  if isTrue "${should_create_symlinks}"; then
+    sudo -u "${USER}" -E USER="${USER}" bash "${currentDir}"/sync.sh
   fi
 
-  if isTrue "${install_tools}"; then
-    sudo "${currentDir}"/tools.sh
+  if isTrue "${should_install_tools}"; then
+    sudo -E USER="${USER}" bash "${currentDir}"/tools.sh
   fi
-
-  # configure_git
-  command_exists "zsh" && zsh -c "source ~/.zshrc"
 }
 
 check_preconditions
 
 # UNIX timestamp concatenated with nanoseconds
-start=$(date +%s%N)
+start="$(date +%s%N)"
 install_main
-end=$(date +%s%N)
+end="$(date +%s%N)"
 difference="$((end-start))"
 
-printf "Installation Complete\n"
-printf "script took: %s\n" "$(displaytime ${difference})"
+success "Installation Complete\n"
+log "script took: %s\n" "$(displaytime ${difference})"
