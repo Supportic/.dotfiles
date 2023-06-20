@@ -13,4 +13,6 @@ function user_of_id(){ awk -v val=${1:-1000} -F ":" '$3==val{print $1}' /etc/pas
 # returns the group of a provided GID
 function group_of_id(){ awk -v val=${1:-1000} -F ":" '$3==val{print $1}' /etc/group; }
 
+function get_users_primary_group(){ echo "$(id -gn ${USER})"; }
+
 
