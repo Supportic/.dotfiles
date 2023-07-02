@@ -11,7 +11,7 @@ function reload() {
 # Create a .tar.gz archive, using `zopfli`, `pigz` or `gzip` for compression
 function targz() {
   local tmpFile="${@%/}.tar"
-  tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1
+  tar -cvf "${tmpFile}" --exclude={".DS_Store","node_modules"} --exclude-vcs "${@}" || return 1
 
   size=$(
     stat -f"%z" "${tmpFile}" 2> /dev/null; # OS X `stat`
