@@ -138,7 +138,7 @@ function myip() {
 ##### DOCKER
 
 function get-docker-info(){
-  [ -z "$(command -v docker)" ] && exit;
+  [ -z "$(command -v docker)" ] && return 2;
   docker system info -f '============= Docker News =============
 Images: {{.Images}}
 Containers: {{.Containers}}
@@ -155,18 +155,18 @@ Plugins:
 }
 
 function get-docker-gateway() {
-  [ -z "$(command -v docker)" ] && exit;
+  [ -z "$(command -v docker)" ] && return 2;
   docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}'
 }
 
 function get-docker-ips() {
-  [ -z "$(command -v docker)" ] && exit;
+  [ -z "$(command -v docker)" ] && return 2;
 
   docker ps -aq | xargs -n 1 docker inspect --format '{{$ipCount := len .NetworkSettings.Networks}}{{ index (split .Name "/") 1}} {{range $i,$element := .NetworkSettings.Networks}}{{if .IPAddress}}[{{$i}}:{{.IPAddress}}]{{if (gt $ipCount 1) }} {{end}}{{end}}{{end}}' | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n
 }
 
 function get-docker-compose-ips() {
-  [ -z "$(command -v docker)" ] && exit;
+  [ -z "$(command -v docker)" ] && return 2;
   for N in $(docker compose ps -q) ; do
     echo "$(docker inspect -f '{{ index (split .Name "/") 1}}' ${N}) $(docker inspect -f '{{$ipCount := len .NetworkSettings.Networks}}{{range $i, $value := .NetworkSettings.Networks}}{{if .IPAddress}}[{{$i}}:{{.IPAddress}}]{{if (gt $ipCount 1) }} {{end}}{{end}}{{end}}' ${N})";
   done
