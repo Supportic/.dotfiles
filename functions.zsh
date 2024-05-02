@@ -139,19 +139,24 @@ function myip() {
 
 function get-docker-info(){
   [ -z "$(command -v docker)" ] && return 2;
-  docker system info -f '============= Docker News =============
+  local ram_in_byte ram_in_gb
+  ram_in_byte=$(docker system info -f '{{ .MemTotal }}')
+  ram_in_gb=$(echo "$ram_in_byte" | awk '{ printf "%.2f", $1/1024/1024/1024; }')
+
+  docker system info -f "============= Docker INFO =============
+Docker Version: {{.ServerVersion}}
+OS: {{.OSType}}
+Architecture: {{.Architecture}}
+Docker Kernel Version: {{.KernelVersion}}
+Docker RAM: ${ram_in_gb}GB
+Docker RootDir: {{.DockerRootDir}}
 Images: {{.Images}}
 Containers: {{.Containers}}
   Running: {{.ContainersRunning}}
   Stopped: {{.ContainersStopped}}
-OS: {{.OSType}}
-Architecture: {{.Architecture}}
-Docker Kernel Version: {{.KernelVersion}}
-Docker Version: {{.ServerVersion}}
-Docker RAM: {{ .MemTotal }}
 Plugins:
   {{range .ClientInfo.Plugins}}[{{.Name}}] {{.ShortDescription}} | {{.Version}}
-  {{end}}'
+  {{end}}"
 }
 
 function get-docker-gateway() {
