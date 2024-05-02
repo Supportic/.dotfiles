@@ -4,7 +4,8 @@
 
 Automated installation of a fresh linux system inside the `installer` directory.
 
-- `./install.sh [-ni|--nointeractive] [--sync] [--essentials] [--tools]` - installing dependencies, setup configurations and symlinks
+- `./install.sh [-ni|--nointeractive] [--sync] [--essentials] [--tools]` 
+- installing dependencies, setup configurations and symlinks
   - nointeractive - skip any user input questions
   - essentials - install essentials when they dont exist like git, zsh, fonts
   - sync - renew symlinks (scripts and configs) and setup configurations
@@ -16,7 +17,7 @@ Automated installation of a fresh linux system inside the `installer` directory.
 
 General paths to find executable scripts:  
 `/usr/local/bin`: system wide scripts  
-`~/bin`: custom user scripts
+`~/bin`: custom user scripts  
 `~/bin/scripts`: custom user scripts (gets recreated on sync)
 
 ## Directories
