@@ -20,33 +20,34 @@ function check_preconditions() {
   fi
 }
 
-# exa better ls (remove: sudo rm -f /usr/local/bin/exa)
-function install_exa() {
-  print_info_banner "Installing exa"
-  local LATEST_RELEASE_URL="https://api.github.com/repos/ogham/exa/releases/latest"
+# exa better ls (remove: sudo rm -f /usr/local/bin/eza)
+function install_eza() {
+  print_info_banner "Installing eza"
+  local LATEST_RELEASE_URL="https://api.github.com/repos/eza-community/eza/releases/latest"
 
-  local LATEST_INFO_TEMPFILE EXA_TEMPFILE EXA_VERSION BROWSER_URL
-  EXA_TEMPFILE=$(mktemp)
+  local LATEST_INFO_TEMPFILE EZA_TEMPFILE EZA_VERSION BROWSER_URL
+  EZA_TEMPFILE=$(mktemp)
   LATEST_INFO_TEMPFILE=$(mktemp)
 
   log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
-  EXA_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  log "Latest exa version: ${EXA_VERSION}"
+  EZA_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
+  log "Latest eza version: ${EZA_VERSION}"
   BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  log "Downloading exa archive: ${BROWSER_URL[3]}"
+  log "Downloading eza archive: ${BROWSER_URL[10]}"
 
-  download "${BROWSER_URL[3]}" "${EXA_TEMPFILE}"
+  # https://github.com/eza-community/eza/releases/download/v0.18.15/eza_x86_64-unknown-linux-musl.zip
+  download "${BROWSER_URL[10]}" "${EZA_TEMPFILE}"
 
-  # -> /usr/local/bin/exa
-  if ! sudo unzip -qo "${EXA_TEMPFILE}" bin/exa -d /usr/local; then
-    cleanup "${LATEST_INFO_TEMPFILE}" "${EXA_TEMPFILE}"
-    die "Could not unzip exa archive ${EXA_TEMPFILE}. Cleaning up tempfiles..."
+  # -> /usr/local/bin/eza
+  if ! sudo unzip -qo "${EZA_TEMPFILE}" eza -d /usr/local/bin; then
+    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPFILE}"
+    die "Could not unzip eza archive ${EZA_TEMPFILE}. Cleaning up tempfiles..."
   else
-    log "Cleaning up exa tempfiles..."
-    cleanup "${LATEST_INFO_TEMPFILE}" "${EXA_TEMPFILE}"
-    sudo chown "${USER}":"${GROUP}" "/usr/local/bin/exa"
-    success "exa installed."
+    log "Cleaning up eza tempfiles..."
+    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPFILE}"
+    sudo chown "${USER}":"${GROUP}" "/usr/local/bin/eza"
+    success "eza installed."
   fi
 }
 
@@ -122,7 +123,7 @@ function install_trash() {
 }
 
 function install_tools() {
-  ! command_exists "exa" && install_exa || info "exa already installed. Skipped..."
+  ! command_exists "exa" && install_eza || info "exa already installed. Skipped..."
   ! command_exists "bat" && install_bat || info "bat already installed. Skipped..."
   ! command_exists "btop" && install_btop || info "btop already installed. Skipped..."
   ! command_exists "pigz" && install_pigz || info "pigz already installed. Skipped..."

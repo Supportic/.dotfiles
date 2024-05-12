@@ -35,7 +35,7 @@ fi
 # URL-decode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L211)
 [ -x "$(command -v omz_urldecode)" ] && alias urldecode="omz_urldecode" || alias urldecode="python -c \"import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]));\""
 
-if [ -x "$(command -v exa)" ]; then
+if [ -x "$(command -v eza)" ]; then
 
     # --git not available on ubuntu 22.04
     if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
@@ -46,23 +46,22 @@ if [ -x "$(command -v exa)" ]; then
     [ ${DISTRO} != "Ubuntu" ] && git="--git"
 
     ## ls
-    alias ls='exa --group-directories-first'
-    alias lS='exa -1'
+    alias ls='eza --group-directories-first'
+    alias lS='eza -1'
     ## list, size, type, git
-    alias ll='exa -labFh --group-directories-first ${git}'
+    alias ll='eza -labhF --group-directories-first ${git}'
     ## long list                                 
-    alias l='exa -labGF --group-directories-first ${git}'
+    alias l='eza -labGF --group-directories-first ${git}'
     ## long list, modified date sort
-    alias llm='exa -lbGd --sort modified ${git}'
+    alias llm='eza -lbGd --sort=modified ${git}'
     ## all list
-    alias la='exa -lbhHigUmuSa --time-style=long-iso --group-directories-first --color-scale ${git}'
+    alias la='eza -lbhHigUmuSa --time-style=long-iso --group-directories-first --color-scale ${git}'
     ## all + extended list
-    alias lx='exa -lbhHigUmuSa@ --time-style=long-iso --group-directories-first --color-scale ${git}'
+    alias lx='eza -lbhHigUmuSa@ --time-style=long-iso --group-directories-first --color-scale ${git}'
 
     ## trees
-    alias lt='exa -T --level=2 --group-directories-first'
-    alias lT='exa -T --level=4 --group-directories-first'
-    alias lt='exa -lT --level=2 --group-directories-first'
+    alias lt='eza -lT --level=2 --group-directories-first'
+    alias lT='eza -T --level=4 --group-directories-first'
 else
   alias ll='ls -alF'
   alias la='ls -A'
