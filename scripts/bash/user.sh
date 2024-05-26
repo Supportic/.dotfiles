@@ -15,4 +15,4 @@ function group_of_id(){ awk -v val=${1:-1000} -F ":" '$3==val{print $1}' /etc/gr
 
 function get_users_primary_group(){ echo "$(id -gn ${USER})"; }
 
-
+function ifsudo(){ [ "$(id -u)" -ne 0 ]; }
