@@ -4,12 +4,12 @@
 
 # check if docker volume exists
 function volumeExists() {
-  VOLUME_NAME="${1:-}"
+  local VOLUME_NAME="${1:-}"
   [ -z "$VOLUME_NAME" ] && echo "Error[fn:volumeExists] requires parameter" && exit 1
 
   docker volume ls -q | grep -qe ^"${VOLUME_NAME}"$
 
-  success=$?
+  local success=$?
   [ $success -eq 0 ] && return 0 || return 1
 }
 
@@ -45,7 +45,7 @@ function main() {
   # init is important to receive SIGTERM signals
   docker run --rm --init -v "${VOLUME_NAME}:/data" -v "${PWD}:/backup-dir" busybox /bin/sh -c "rm -rf /data/{*,.*}; cd /data && tar xvzf /backup-dir/${VOLUME_NAME}.tar.gz --strip 1"
 
-  success=$?
+  local success=$?
   [ $success -ne 0 ] && printf "Import failed.\n" && exit 1;
 
   printf "Volume imported.\nExport complete.\n"; exit 0

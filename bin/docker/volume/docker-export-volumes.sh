@@ -15,31 +15,31 @@ function main() {
     exit 0
   fi
 
-  local EXPORT_DIRECTORY="${1:-.volumes}"
+  local export_dir="${1:-.volumes}"
 
-  if [ -d "${EXPORT_DIRECTORY}" ]; then
-    echo "Directory ${EXPORT_DIRECTORY} already exists. Exiting."; exit 1
+  if [ -d "${export_dir}" ]; then
+    echo "Directory ${export_dir} already exists. Exiting."; exit 1
   else
-    mkdir -p "${EXPORT_DIRECTORY}"
+    mkdir -p "${export_dir}"
   fi
 
-  VOLUMES=$(docker volume ls -q | tr '\n' ' ')
-  VOLUMES_LIST=($VOLUMES)
-  file_count=${#VOLUMES_LIST[@]}
-  import_count=0;
+  local VOLUMES=$(docker volume ls -q | tr '\n' ' ')
+  local VOLUMES_LIST=($VOLUMES)
+  local file_count=${#VOLUMES_LIST[@]}
+  local import_count=0;
   for V in $VOLUMES ; do
     echo "Exporting volume $V";
     # init is important to receive SIGTERM signals
-    docker run --rm --init -v "${V}:/data" -v "${PWD}/${EXPORT_DIRECTORY}:/backup" busybox tar cvzf "/backup/${V}.tar.gz" /data
+    docker run --rm --init -v "${V}:/data" -v "${PWD}/${export_dir}:/backup" busybox tar cvzf "/backup/${V}.tar.gz" /data
 
-    success=$?
+    local success=$?
     [ $success -eq 0 ] && import_count=$((import_count+1)); echo "Exported volume $V"
   done
 
-  printf "$import_count/$file_count volumes exported to ${PWD}/${EXPORT_DIRECTORY}\nSetting up ownership to current user.\n"
+  printf "$import_count/$file_count volumes exported to ${PWD}/${export_dir}\nSetting up ownership to current user.\n"
 
   sudo -v
-  tar_gz_files=($(find "${EXPORT_DIRECTORY}" -type f -name "*.tar.gz"))
+  local tar_gz_files=($(find "${export_dir}" -type f -name "*.tar.gz"))
   for V in $tar_gz_files ; do
     sudo chown -R "$(id -u):$(id -g)" "${V}"
   done

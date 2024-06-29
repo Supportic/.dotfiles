@@ -4,12 +4,12 @@
 
 # check if docker volume exists
 function volumeExists() {
-  VOLUME_NAME="${1:-}"
+  local VOLUME_NAME="${1:-}"
   [ -z "$VOLUME_NAME" ] && echo "Error[fn:volumeExists] requires parameter" && exit 1
 
   docker volume ls -q | grep -qe ^"${VOLUME_NAME}"$
 
-  success=$?
+  local success=$?
   [ $success -eq 0 ] && return 0 || return 1
 }
 
@@ -26,21 +26,21 @@ function main() {
     exit 0
   fi
 
-  local IMPORT_DIRECTORY="${1:-.volumes}"
+  local import_dir="${1:-.volumes}"
 
-  if [ ! -d "${IMPORT_DIRECTORY}" ]; then
-    echo "Directory ${IMPORT_DIRECTORY} does not exist. Exiting."; exit 1
+  if [ ! -d "${import_dir}" ]; then
+    echo "Directory ${import_dir} does not exist. Exiting."; exit 1
   fi
 
-  tar_gz_files=$(find "${IMPORT_DIRECTORY}" -type f -name "*.tar.gz")
-  tar_gz_files_list=($tar_gz_files)
-  file_count=${#tar_gz_files_list[@]}
-  import_count=0;
+  local tar_gz_files=$(find "${import_dir}" -type f -name "*.tar.gz")
+  local tar_gz_files_list=($tar_gz_files)
+  local file_count=${#tar_gz_files_list[@]}
+  local import_count=0;
   
   for V in $tar_gz_files ; do
 
-    filepath=$(basename -- "$V")
-    filename=$(echo $filepath | awk -F. '{ print $1 }')
+    local filepath=$(basename -- "$V")
+    local filename=$(echo $filepath | awk -F. '{ print $1 }')
 
     if volumeExists "${filename}"; then
       printf "Volume ${filename} already exists.\n"
@@ -49,7 +49,7 @@ function main() {
 
     echo "Importing volume $filename";
     # init is important to receive SIGTERM signals
-    docker run --rm --init -v "${filename}:/data" -v "${PWD}/${IMPORT_DIRECTORY}:/backup-dir" busybox /bin/sh -c "rm -rf /data/{*,.*}; cd /data && tar xvzf /backup-dir/${filename}.tar.gz --strip 1" > /dev/null 2>&1
+    docker run --rm --init -v "${filename}:/data" -v "${PWD}/${import_dir}:/backup-dir" busybox /bin/sh -c "rm -rf /data/{*,.*}; cd /data && tar xvzf /backup-dir/${filename}.tar.gz --strip 1" > /dev/null 2>&1
 
     success=$?
     [ $success -eq 0 ] && import_count=$((import_count+1))
