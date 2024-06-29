@@ -1,25 +1,29 @@
 #!/bin/bash
 
+[ -z "$(command -v docker)" ] && echo "Error: Docker not available" && exit 2;
+
 # https://www.laub-home.de/wiki/Docker_Volume_Rename_-_HowTo
 
 # check if docker volume exists
 function volumeExists() {
-  docker volume inspect "$1" > /dev/null 2>&1
-  # was last command successful. Answer is 0 which means 'yes'
-  [ "$?" != "0" ] && return 1
+  VOLUME_NAME="${1:-}"
+  [ -z "$VOLUME_NAME" ] && echo "Error[fn:volumeExists] requires parameter" && exit 1
 
-  return 0
+  docker volume ls -q | grep -qe ^"${VOLUME_NAME}"$
+
+  success=$?
+  [ $success -eq 0 ] && return 0 || return 1
 }
 
 function main() {
   local programname=
   programname=$(basename ${0})
   local usage=
-  usage="Usage: ${programname} <OLD_VOLUME_NAME> <NEW_VOLUME_NAME>"
+  usage="Usage: ${programname} <SOURCE_VOLUME_NAME> <TARGET_VOLUME_NAME>"
 
   # check whether user had supplied -h or --help
   if [[ $@ == "--help" ||  $@ == "-h" ]]; then
-    printf "This script clones an existing docker volume via an alpine image.\n"
+    printf "This script clones an existing docker volume via an busybox image.\n"
     printf "List all available docker volumes: \"docker volume ls\"\n\n"
     printf "${usage}\n"
     exit 0
@@ -41,7 +45,7 @@ function main() {
     echo "The destination volume \"$2\" already exists."
 
     while true; do
-      read -p "Would you like to copy data into it? [y/n] " answer
+      read -p "Would you like to copy data into it? This overwrites existing files in the destination volume. [y/n] " answer
       case $answer in
           [Yy]* )
           break
@@ -58,16 +62,17 @@ function main() {
 
   # copy the stuff
   echo "Copying data from source volume \"$1\" to destination volume \"$2\" ..."
-  docker run --rm \
-    --name clonevolume \
-          -it \
-          -v "$1":/from:ro \
-          -v "$2":/to \
-          alpine ash -c "cd /from ; cp -a . /to"
-  echo "Done copying data from source volume \"$1\" to destination volume \"$2\"."
+  # init is important to receive SIGTERM signals
+  docker run --rm --init \
+            --name clonevolume \
+            -it \
+            -v "$1":/from:ro \
+            -v "$2":/to \
+            busybox /bin/sh -c "cd /from ; cp -a . /to"
+  echo "Done copying data from source volume \"$1\" to destination volume \"$2\"."; exit 0
 }
 
-args=${@:-""}
+args="${@:-}"
 
 main ${args}
 
