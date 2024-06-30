@@ -1,6 +1,9 @@
 #!/bin/bash
 
-[ -z "$(command -v docker)" ] && echo "Error: Docker not available" && exit 2;
+if ! docker info >/dev/null 2>&1; then
+  echo "Error: Docker not available"
+  exit 2
+fi
 
 # check if docker volume exists
 function volumeExists() {

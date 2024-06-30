@@ -1,6 +1,9 @@
 #!/bin/bash
 
-[ -z "$(command -v docker)" ] && echo "Error: Docker not available" && exit 2;
+if ! docker info >/dev/null 2>&1; then
+  echo "Error: Docker not available"
+  exit 2
+fi
 
 # https://www.laub-home.de/wiki/Docker_Volume_Rename_-_HowTo
 
