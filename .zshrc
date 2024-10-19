@@ -143,3 +143,9 @@ fi
 if [ -x "$(command -v keychain)" ]; then
   grep -slR "PRIVATE" ~/.ssh/ | xargs keychain --eval --agents ssh > /dev/null 2>&1
 fi
+
+# open new WSL session in WT in same directory
+keep_current_path() {
+  printf "\e]9;9;%s\e\\" "$(wslpath -w "$PWD")"
+}
+precmd_functions+=(keep_current_path)
