@@ -42,3 +42,6 @@ function install_packages() {
     sudo DEBIAN_FRONTEND="noninteractive" apt-get -y install --no-install-recommends $@
   fi
 }
+
+# checks if string $1 is in $2
+function startswith() { case $2 in "$1"*) true;; *) false;; esac; }
