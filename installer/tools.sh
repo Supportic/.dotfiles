@@ -34,10 +34,10 @@ function install_eza() {
   EZA_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
   log "Latest eza version: ${EZA_VERSION}"
   BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  log "Downloading eza archive: ${BROWSER_URL[10]}"
+  log "Downloading eza archive: ${BROWSER_URL[12]}"
 
   # https://github.com/eza-community/eza/releases/download/v0.18.15/eza_x86_64-unknown-linux-musl.zip
-  download "${BROWSER_URL[10]}" "${EZA_TEMPFILE}"
+  download "${BROWSER_URL[12]}" "${EZA_TEMPFILE}"
 
   # -> /usr/local/bin/eza
   if ! sudo unzip -qo "${EZA_TEMPFILE}" eza -d /usr/local/bin; then
