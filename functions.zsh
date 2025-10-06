@@ -109,7 +109,7 @@ function port() {
 # Kill processes at a given port
 function killport() {
   echo '🚨 Killing all processes on port' $1
-  lsof -ti tcp:$1 | xargs kill
+  lsof -ti tcp:$1 | xargs -i kill {}
 }
 
 function myip() {
