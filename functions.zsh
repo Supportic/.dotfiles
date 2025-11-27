@@ -164,15 +164,52 @@ function get-docker-gateway() {
   docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}'
 }
 
+# -a for all containers, otherwise only running ones
 function get-docker-ips() {
-  [ -z "$(command -v docker)" ] && return 2;
+  [ -z "$(command -v docker)" ] && return 0;
 
-  docker ps -aq | xargs -n 1 docker inspect --format '{{$ipCount := len .NetworkSettings.Networks}}{{ index (split .Name "/") 1}} {{range $i,$element := .NetworkSettings.Networks}}{{if .IPAddress}}[{{$i}}:{{.IPAddress}}]{{if (gt $ipCount 1) }} {{end}}{{end}}{{end}}' | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n
+  local dockerFlags="-q"
+
+  if [ ! -z "$1" ] && [ "$1" = "-a" ]; then
+    dockerFlags="-aq"
+  fi
+
+  # networksettings can have mutliple networks, list only first
+  docker ps "${dockerFlags}" | xargs -n 1 docker inspect --format '{{$ipCount := len .NetworkSettings.Networks}}{{ index (split .Name "/") 1}} {{range $i,$element := .NetworkSettings.Networks}}{{if .IPAddress}}[{{$i}}:{{.IPAddress}}]{{if (gt $ipCount 1) }} {{end}}{{end}}{{end}}' | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n
 }
 
 function get-docker-compose-ips() {
   [ -z "$(command -v docker)" ] && return 2;
   for N in $(docker compose ps -q) ; do
     echo "$(docker inspect -f '{{ index (split .Name "/") 1}}' ${N}) $(docker inspect -f '{{$ipCount := len .NetworkSettings.Networks}}{{range $i, $value := .NetworkSettings.Networks}}{{if .IPAddress}}[{{$i}}:{{.IPAddress}}]{{if (gt $ipCount 1) }} {{end}}{{end}}{{end}}' ${N})";
+  done
+}
+
+function nvm-update-lts() {
+  [ -z "$(command -v nvm)" ] && return 0;
+
+  if [ "$(nvm current)" = "none" ]; then
+    echo "No node versions currently installed. Installing fresh LTS."
+    nvm install --lts --latest-npm
+
+  else
+    echo "Updating current node version to LTS: $(nvm current)"
+    nvm install --lts --latest-npm --reinstall-packages-from="$(nvm current)"
+    # nvm copy-packages "$(nvm current)"
+    # nvm reinstall-packages "$(nvm current)"
+  fi
+
+  nvm use --lts
+  nvm alias default "$(nvm current)"
+}
+
+function nvm-remove-all() {
+  [ -z "$(command -v nvm)" ] && return 0;
+
+  # 1. Deactivate to ensure the current version isn't locked
+  nvm deactivate
+
+  for version in $(nvm ls --no-alias | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' ); do
+    nvm uninstall "${version}"
   done
 }
