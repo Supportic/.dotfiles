@@ -4,12 +4,12 @@
 
 Automated installation of a fresh linux system inside the `installer` directory.
 
-- `./install.sh [-ni|--nointeractive] [--sync] [--essentials] [--tools]` 
+- `./install.sh [-ni|--nointeractive] [--sync] [--essentials] [--tools]`
 - installing dependencies, setup configurations and symlinks
   - nointeractive - skip any user input questions
   - essentials - install essentials when they dont exist like git, zsh, fonts
   - sync - renew symlinks (scripts and configs) and setup configurations
-  - tools - install tools if they don't exist like exa or bat
+  - tools - install tools if they don't exist like eza or bat
 
 `./sync.sh`, `./essentials.sh`, `./tools.sh` can be called individually.
 

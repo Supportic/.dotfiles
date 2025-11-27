@@ -20,7 +20,7 @@ function check_preconditions() {
   fi
 }
 
-# exa better ls (remove: sudo rm -f /usr/local/bin/eza)
+# eza better ls (remove: sudo rm -f /usr/local/bin/eza)
 function install_eza() {
   print_info_banner "Installing eza"
   local LATEST_RELEASE_URL="https://api.github.com/repos/eza-community/eza/releases/latest"
@@ -75,7 +75,7 @@ function install_bat() {
     cleanup "${LATEST_INFO_TEMPFILE}" "${BAT_TEMPFILE}"
     die "Could not dpkg install bat ${BAT_TEMPFILE}. Cleaning up tempfiles..."
   else
-    log "Cleaning up exa tempfiles..."
+    log "Cleaning up bat tempfiles..."
     cleanup "${LATEST_INFO_TEMPFILE}" "${BAT_TEMPFILE}"
     success "bat installed."
   fi
@@ -122,12 +122,20 @@ function install_trash() {
   success "trash installed."
 }
 
+# better find command than default find
+function install_ripgrep() {
+  print_info_banner "Installing ripgrep"
+  install_packages ripgrep
+  success "ripgrep installed."
+}
+
 function install_tools() {
-  ! command_exists "exa" && install_eza || info "exa already installed. Skipped..."
+  ! command_exists "eza" && install_eza || info "eza already installed. Skipped..."
   ! command_exists "bat" && install_bat || info "bat already installed. Skipped..."
   ! command_exists "btop" && install_btop || info "btop already installed. Skipped..."
   ! command_exists "pigz" && install_pigz || info "pigz already installed. Skipped..."
   ! command_exists "trash" && install_trash || info "trash already installed. Skipped..."
+  ! command_exists "rg" && install_ripgrep || info "ripgrep already installed. Skipped..."
 }
 
 check_preconditions
