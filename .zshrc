@@ -125,6 +125,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 # windows WSL: ssh agent does not persist after session, recreate it
+# https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials
 # verify: ssh-add -l
 # debug: killall ssh-agent
 if [ -z "${SSH_AUTH_SOCK}" ]; then
