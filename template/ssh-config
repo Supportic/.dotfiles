@@ -1,4 +1,6 @@
 Host *
   ServerAliveInterval 100
   ForwardAgent yes
+  IgnoreUnknown AddKeysToAgent,UseKeychain
   AddKeysToAgent yes
+  UseKeychain yes

@@ -136,13 +136,14 @@ if [ -z "${SSH_AUTH_SOCK}" ]; then
       ssh-agent -s &> "${HOME}"/.ssh/ssh-agent
   fi
   eval "$(cat ${HOME}/.ssh/ssh-agent)" > /dev/null 2>&1
-  # ssh-agent also should automatically add keys inside ~/.ssh
+  # ssh-agent also should automatically add keys inside ~/.ssh (dont use if password protected keys)
   grep -slR "PRIVATE" ~/.ssh/ | xargs -t ssh-add > /dev/null 2>&1
 fi
 
-# mainly for MAC, verify: keychain -L
+# mainly for MAC, verify: keychain -L (dont use if password protected keys)
+# keychain should be executed once with existing keys as parameter
 if [ -x "$(command -v keychain)" ]; then
-  grep -slR "PRIVATE" ~/.ssh/ | xargs keychain --eval --agents ssh > /dev/null 2>&1
+  eval "$(keychain --eval --agents ssh $(grep -slR "PRIVATE" ~/.ssh/ | tr '\n' ' '))"
 fi
 
 # open new WSL session in WT in same directory
