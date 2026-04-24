@@ -11,14 +11,15 @@ function command_exists() {
 function script_command_exists() {
   # appended double quote to make sure we do get a string
   # if $1 is not a known command, type does not output anything
-  [ `type -t ${1:-}`"" == 'function' ]
+  [ "$(type -t "${1:-}")" == 'function' ]
 }
 # specific: is the command defined on the system
 function system_command_exists() {
-  [ ! -z $(which "${1:-}") ]
+  [ ! -z "$(which "${1:-}")" ]
 }
 function package_exists() {
-  local status="$(dpkg-query --show --showformat='${db:Status-Status}' "${1:-}" 2>&1)"
+  local status
+  status="$(dpkg-query --show --showformat='${db:Status-Status}' "${1:-}" 2>&1)"
   [ $? -eq 0 ] && [ "${status}" = "installed" ]
 }
 
