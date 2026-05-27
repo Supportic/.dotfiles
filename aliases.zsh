@@ -22,7 +22,7 @@ alias hist='history | grep'
 # Get week number
 alias week='date +%V'
 # copy git branch name to clipboard (git plugin required)
-alias gbc="git_current_branch | clipcopy"
+alias gbc="git_current_branch | tr -d '\n' | clipcopy"
 
 # URL-encode URL strings (https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/functions.zsh#L130)
 if [ -x "$(command -v omz_urlencode)" ]; then
