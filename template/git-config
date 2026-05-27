@@ -58,9 +58,11 @@
   gb = branch --show-current
   # show latest commit
   lbr = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) %(color:dim white )<%(authorname)>' --sort=-committerdate
-  # unstage all your stages files
-  unstage = reset --soft HEAD^
-  # revert the last commit, keep the changes
+  # moves files from staged -> unstaged
+  unstage = reset
+  # revert last commit and move changes from last commit -> staged (use case: edit last commit)
+  uncommit = reset --soft HEAD^
+  # revert last commit and move changes from last commit -> unstaged
   undo = reset HEAD~1 --mixed
   # revert all local changes
   drop = !git reset --hard
