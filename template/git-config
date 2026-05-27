@@ -67,7 +67,7 @@
   # log
   l = log -n 30 --all --topo-order --pretty=tformat:'%C(bold red)%h%C(reset)%C(bold 11)%d %C(reset)%s %C(reset)%C(green)(%cr)'
   lg = log -n 30 --all --date=format-local:'%b %d %Y %T' --pretty=tformat:'○ %C(bold red)%h%C(reset) - %C(green)%ad%C(reset) %C(green)(%ar)%C(reset)%C(bold 11)%d%C(reset)%n  %C(reset)%s %C(dim white)- %cn%n'
-  lgc = "!CURRENT_BRANCH=$(git branch --show-current) && git log $CURRENT_BRANCH --date=format-local:'%b %d %Y %T' --graph --abbrev-commit --pretty='tformat:%C(bold blue)%h%C(reset) %C(bold green)(%ar)%C(reset) %s %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --not $(git for-each-ref --format='%(refname)' refs/heads/ | grep -v refs/heads/$CURRENT_BRANCH) #"
+  lgc = "!f() { current=$(git branch --show-current); exclude=\"\"; for ref in $(git for-each-ref --format='%(refname:short)' refs/heads/); do [ \"$ref\" != \"$current\" ] && exclude=\"$exclude ^$ref\"; done; git log HEAD $exclude --graph --date=format-local:'%b %d %Y %T' --abbrev-commit --pretty='tformat:%C(bold blue)%h%C(reset) %C(bold green)(%ar)%C(reset) %s %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate \"$@\"; }; f"
   save = stash push --include-untracked
   pop = stash pop
   amend = commit --amend -m
