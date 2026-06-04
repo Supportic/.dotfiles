@@ -29,3 +29,9 @@ typeset -U PATH path
 [ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"
 [ -d "$HOME/bin/scripts" ] && export PATH="$HOME/bin/scripts:$PATH"
 [ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+
+# when using composer
+# export COMPOSER_HOME="$HOME/.composer"
+
+# when using keyring
+# export SSH_AGENT_PID="$(pgrep gnome-keyring)"
