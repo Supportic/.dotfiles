@@ -28,7 +28,7 @@ function create_symlinks() {
   symlink_scripts
 
   configure_git
-  command_exists "zsh" && zsh -c "source ${HOME}/.zshrc"
+  command_exists "zsh" && zsh -c "source ${INVOKING_HOME}/.zshrc"
 }
 
 check_preconditions

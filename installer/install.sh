@@ -14,7 +14,7 @@ function check_preconditions() {
     info "This script will configure your Linux machine."
     read -rep $'Do you want to continue? [y/n]: ' canStart
     ([ -z "${canStart}" ] || ! isTrue "$canStart") && die "Script exited.";
-    print_info_banner "Setting up Linux...\nHOME=${HOME} | USER=${USER}"
+    print_info_banner "Setting up Linux...\nHOME=${INVOKING_HOME} | USER=${INVOKING_USER}"
   fi
 
   local packages=("")
@@ -28,19 +28,20 @@ function check_preconditions() {
   fi
 }
 
-# -u with user ownership, -E preserve env variables
+# sudo -E is deprecated in sudo-rs, so instead pass the required environment variables
+# -E would preserve all environment variables
 function install_main() {
   if isTrue "${should_install_essentials}"; then
-    sudo -E USER="${USER}" bash "${currentDir}"/essentials.sh
+    sudo SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/essentials.sh
   fi
 
   # create directory and symlinks with user permissions 
   if isTrue "${should_create_symlinks}"; then
-    sudo -u "${USER}" -E USER="${USER}" bash "${currentDir}"/sync.sh
+    sudo_user SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/sync.sh
   fi
 
   if isTrue "${should_install_tools}"; then
-    sudo -E USER="${USER}" bash "${currentDir}"/tools.sh
+    sudo SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/tools.sh
   fi
 }
 

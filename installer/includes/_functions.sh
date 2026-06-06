@@ -23,9 +23,9 @@ function symlink_git_config() {
   log "Recreated gitconfig from template."
 
   # config 
-  ln -sfn "${DOTFILES_DIR}"/.gitconfig "${HOME}"/.gitconfig >/dev/null 2>&1
+  ln -sfn "${DOTFILES_DIR}"/.gitconfig "${INVOKING_HOME}"/.gitconfig >/dev/null 2>&1
   # ignore 
-  ln -sfn "${TEMPLATE_DIR}"/gitignore "${HOME}"/.gitignore >/dev/null 2>&1
+  ln -sfn "${TEMPLATE_DIR}"/gitignore "${INVOKING_HOME}"/.gitignore >/dev/null 2>&1
 
   if [ -n "${current_username}" ] && [ -n "${current_email}" ]; then
     git config --global user.name "${current_username}"
@@ -33,22 +33,22 @@ function symlink_git_config() {
     log "Reused previous git configs."
   fi
 
-  success "Symlinked git configs into ${HOME} directory."
+  success "Symlinked git configs into ${INVOKING_HOME} directory."
 }
 
 function symlink_zsh_config() {
   ! command_exists "zsh" && failure "Please install zsh in order to sync zsh configs." && return;
 
-  ln -sfn "${DOTFILES_DIR}"/aliases.zsh "${HOME}"/.oh-my-zsh/custom/aliases.zsh
-  ln -sfn "${DOTFILES_DIR}"/functions.zsh "${HOME}"/.oh-my-zsh/custom/functions.zsh
-  ln -sfn "${DOTFILES_DIR}"/.zshenv "${HOME}"/.zshenv
-  ln -sfn "${DOTFILES_DIR}"/.zshrc "${HOME}"/.zshrc
-  ln -sfn "${DOTFILES_DIR}"/.zlogout "${HOME}"/.zlogout
-  ln -sfn "${DOTFILES_DIR}"/.zprofile "${HOME}"/.zprofile
-  ln -sfn "${DOTFILES_DIR}"/.p10k.zsh "${HOME}"/.p10k.zsh
-  ln -sfn "${DOTFILES_DIR}"/.p10k-intellij.zsh "${HOME}"/.p10k-intellij.zsh
+  ln -sfn "${DOTFILES_DIR}"/aliases.zsh "${INVOKING_HOME}"/.oh-my-zsh/custom/aliases.zsh
+  ln -sfn "${DOTFILES_DIR}"/functions.zsh "${INVOKING_HOME}"/.oh-my-zsh/custom/functions.zsh
+  ln -sfn "${DOTFILES_DIR}"/.zshenv "${INVOKING_HOME}"/.zshenv
+  ln -sfn "${DOTFILES_DIR}"/.zshrc "${INVOKING_HOME}"/.zshrc
+  ln -sfn "${DOTFILES_DIR}"/.zlogout "${INVOKING_HOME}"/.zlogout
+  ln -sfn "${DOTFILES_DIR}"/.zprofile "${INVOKING_HOME}"/.zprofile
+  ln -sfn "${DOTFILES_DIR}"/.p10k.zsh "${INVOKING_HOME}"/.p10k.zsh
+  ln -sfn "${DOTFILES_DIR}"/.p10k-intellij.zsh "${INVOKING_HOME}"/.p10k-intellij.zsh
 
-  success "Symlinked zsh configs into ${HOME} directory."
+  success "Symlinked zsh configs into ${INVOKING_HOME} directory."
 }
 
 function symlink_ssh_config() {
@@ -59,7 +59,7 @@ function symlink_ssh_config() {
   fi
   
   # doesn't create dir if exists
-  mkdir -p "${HOME}"/.ssh && ln -sfn "${DOTFILES_DIR}/.sshconfig" "$_"/config
+  mkdir -p "${INVOKING_HOME}"/.ssh && ln -sfn "${DOTFILES_DIR}/.sshconfig" "$_"/config
 }
 
 function symlink_scripts() {

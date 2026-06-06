@@ -32,12 +32,14 @@ function install_eza() {
   log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
   EZA_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  log "Latest eza version: ${EZA_VERSION}"
-  BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  log "Downloading eza archive: ${BROWSER_URL[12]}"
+  EZA_VERSION="${EZA_VERSION#v}" # strip leading 'v' from version string if present
+  log "Latest eza version: v${EZA_VERSION}"
+  # amongst all found 'browser_download_url' values in an array, find the URL that containns "x86_64-unknown-linux-musl.zip" which is the correct archive for most Linux distros and architectures (except arm64)
+  BROWSER_URL=$(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true | grep "x86_64-unknown-linux-musl.zip")
 
-  # https://github.com/eza-community/eza/releases/download/v0.18.15/eza_x86_64-unknown-linux-musl.zip
-  download "${BROWSER_URL[12]}" "${EZA_TEMPFILE}"
+  log "Downloading eza archive: ${BROWSER_URL}"
+  # https://github.com/eza-community/eza/releases/download/v${EZA_VERSION}/eza_x86_64-unknown-linux-musl.zip
+  download "${BROWSER_URL}" "${EZA_TEMPFILE}"
 
   # -> /usr/local/bin/eza
   if ! sudo unzip -qo "${EZA_TEMPFILE}" eza -d /usr/local/bin; then
@@ -46,7 +48,7 @@ function install_eza() {
   else
     log "Cleaning up eza tempfiles..."
     cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPFILE}"
-    sudo chown "${USER}":"${GROUP}" "/usr/local/bin/eza"
+    sudo chown "${INVOKING_USER}":"${INVOKING_GROUP}" "/usr/local/bin/eza"
     success "eza installed."
   fi
 }
@@ -62,13 +64,16 @@ function install_bat() {
 
   log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
+
   BAT_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  log "Latest bat version: ${BAT_VERSION}"
-  BROWSER_URL=($(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true))
-  log "Downloading bat .deb file: ${BROWSER_URL[13]}"
-  
-  # https://github.com/sharkdp/bat/releases/download/v0.23.0/bat_0.23.0_amd64.deb
-  download "${BROWSER_URL[13]}" "${BAT_TEMPFILE}"
+  BAT_VERSION="${BAT_VERSION#v}" # strip leading 'v' from version string if present
+  log "Latest bat version: v${BAT_VERSION}"
+  # BROWSER_URL=$(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true | grep "_amd64.deb")
+  BROWSER_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_amd64.deb"
+
+  log "Downloading bat .deb file: ${BROWSER_URL}"
+  # https://github.com/sharkdp/bat/releases/download/v0.26.1/bat_0.26.1_amd64.deb
+  download "${BROWSER_URL}" "${BAT_TEMPFILE}"
 
   # /dev/null 2>&1
   if ! sudo dpkg -i "${BAT_TEMPFILE}"; then
@@ -93,11 +98,14 @@ function install_btop() {
 
   log "Downloading latest release info: ${LATEST_RELEASE_URL}"
   download "${LATEST_RELEASE_URL}" "${LATEST_INFO_TEMPFILE}"
+
   BTOP_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
-  log "Latest btop version: ${BTOP_VERSION}"
-  BROWSER_URL="https://github.com/aristocratos/btop/releases/download/${BTOP_VERSION}/btop-x86_64-linux-musl.tbz"
+  BTOP_VERSION="${BTOP_VERSION#v}" # strip leading 'v' from version string if present
+  log "Latest btop version: v${BTOP_VERSION}"
+  BROWSER_URL="https://github.com/aristocratos/btop/releases/download/v${BTOP_VERSION}/btop-x86_64-unknown-linux-musl.tar.gz"
 
   log "Downloading btop archive: ${BROWSER_URL}"
+  # https://github.com/aristocratos/btop/releases/download/v1.4.7/btop-x86_64-unknown-linux-musl.tar.gz
   download "${BROWSER_URL}" "${BTOP_TEMPFILE}"
 
   sudo tar -xjf "${BTOP_TEMPFILE}" -C "${BTOP_TEMPDIR}"
