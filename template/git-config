@@ -78,6 +78,6 @@
   # search in commits | provide search term
   se = !git rev-list --all | xargs git grep -F
   # restore file permissions but keep changes
-  permission-reset = !git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -E "^(diff|(old|new) mode)" --color=never | git apply
+  permission-reset = !git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -E '"^(diff|(old|new) mode)"' --color=never | git apply
   # Remove deleted remote branches and branches that have already been merged with main branch
   dm = !git fetch -p && git branch --format='"%(refname:lstrip=2)"' --merged | xargs -n 1 git branch -d 2> /dev/null
