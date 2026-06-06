@@ -224,3 +224,7 @@ function curl() {
 
   command curl -fsSL --retry 3 "$@"
 }
+
+function inWSL() {
+  grep -qEi "(microsoft|WSL)" /proc/version >/dev/null 2>&1
+}

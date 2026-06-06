@@ -58,8 +58,11 @@ function symlink_ssh_config() {
     cp -pu ${TEMPLATE_DIR}/ssh-config "${DOTFILES_DIR}/.sshconfig" || die "Unable to copy file: ${TEMPLATE_DIR}/ssh-config -> ${DOTFILES_DIR}/.sshconfig"
   fi
   
-  # doesn't create dir if exists
-  mkdir -p "${INVOKING_HOME}"/.ssh && ln -sfn "${DOTFILES_DIR}/.sshconfig" "$_"/config
+  # -p doesn't create dir if exists
+  mkdir -p "${INVOKING_HOME}"/.ssh
+
+  ln -sfn "${DOTFILES_DIR}/.sshconfig" "${INVOKING_HOME}/.ssh/config"
+  inWSL && ln -sfn "${DOTFILES_DIR}/ssh-agent-bridge.sh" "${INVOKING_HOME}/.ssh/ssh-agent-bridge"
 }
 
 function symlink_scripts() {

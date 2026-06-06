@@ -114,6 +114,7 @@ function install_language() {
 
 function install_ssh() {
   install_packages "openssh-client" "keychain"
+  isWSL & install_packages "socat"
 }
 
 function install_zsh() {
@@ -124,22 +125,22 @@ function install_zsh() {
     sudo_user bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
     # change default shell
-    sudo chsh -s "$(which zsh)" "${USER}"
+    sudo chsh -s "$(which zsh)" "${INVOKING_USER}"
 
-    local exclude_ext pluginDir pluginDirName
+    # local exclude_ext pluginDir pluginDirName
 
-    exclude_ext=("git")
+    # exclude_ext=("git docker docker-compose dotenv z")
 
-    # remove not used stuff
-    rm -rf "${INVOKING_HOME}"/.oh-my-zsh/themes/*
-    for pluginDir in "${INVOKING_HOME}"/.oh-my-zsh/plugins/*; do
-      pluginDirName="$(basename "${pluginDir}")"
-      # NOTE: invert by removing !
-      if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
-        rm -rf "${pluginDir}"
-      fi
-    done
-    printf "\n# custom injected\n/themes\n/plugins\n" >> "${INVOKING_HOME}"/.oh-my-zsh/.gitignore
+    # # remove not used stuff
+    # rm -rf "${INVOKING_HOME}"/.oh-my-zsh/themes/*
+    # for pluginDir in "${INVOKING_HOME}"/.oh-my-zsh/plugins/*; do
+    #   pluginDirName="$(basename "${pluginDir}")"
+    #   # NOTE: invert by removing !
+    #   if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
+    #     rm -rf "${pluginDir}"
+    #   fi
+    # done
+    # printf "\n# custom injected\n/themes\n/plugins\n" >> "${INVOKING_HOME}"/.oh-my-zsh/.gitignore
 
     # install theme 
     sudo_user git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"

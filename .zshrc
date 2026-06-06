@@ -128,23 +128,7 @@ export NVM_DIR="$HOME/.nvm"
 # https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials
 # verify: ssh-add -l
 # debug: killall ssh-agent
-if [ -z "${SSH_AUTH_SOCK}" ]; then
-  # Check for a currently running instance of the agent
-  RUNNING_AGENT="`ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]'`"
-  if [ "${RUNNING_AGENT}" = "0" ]; then
-      # Launch a new instance of the agent
-      ssh-agent -s &> "${HOME}"/.ssh/ssh-agent
-  fi
-  eval "$(cat ${HOME}/.ssh/ssh-agent)" > /dev/null 2>&1
-  # ssh-agent also should automatically add keys inside ~/.ssh (dont use if password protected keys)
-  grep -slR "PRIVATE" ~/.ssh/ | xargs -t ssh-add > /dev/null 2>&1
-fi
-
-# mainly for MAC, verify: keychain -L (dont use if password protected keys)
-# keychain should be executed once with existing keys as parameter
-if [ -x "$(command -v keychain)" ]; then
-  eval "$(keychain --eval --agents ssh $(grep -slR "PRIVATE" ~/.ssh/ | tr '\n' ' '))"
-fi
+grep -qEi "(microsoft|WSL)" /proc/version && [ -f "$HOME/.ssh/ssh-agent-bridge" ] && source "$HOME/.ssh/ssh-agent-bridge"
 
 # open new WSL session in WT in same directory
 keep_current_path() {
