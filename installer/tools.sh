@@ -7,7 +7,8 @@ currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 . "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  ! isRoot && die "Please execute script with sudo permissions."
+  isRoot && die "Please execute script as user without sudo."
+  ask_sudo
   
   local packages=("curl" "unzip" "tar" "bzip2" "ca-certificates")
   local packagesToInstall=""
@@ -27,6 +28,7 @@ function install_eza() {
 
   local LATEST_INFO_TEMPFILE EZA_TEMPFILE EZA_VERSION BROWSER_URL
   EZA_TEMPFILE=$(mktemp)
+  EZA_TEMPDIR=$(mktemp -d)
   LATEST_INFO_TEMPFILE=$(mktemp)
 
   log "Downloading latest release info: ${LATEST_RELEASE_URL}"
@@ -41,15 +43,16 @@ function install_eza() {
   # https://github.com/eza-community/eza/releases/download/v${EZA_VERSION}/eza_x86_64-unknown-linux-musl.zip
   download "${BROWSER_URL}" "${EZA_TEMPFILE}"
 
-  # -> /usr/local/bin/eza
-  if ! sudo unzip -qo "${EZA_TEMPFILE}" eza -d /usr/local/bin; then
-    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPFILE}"
-    die "Could not unzip eza archive ${EZA_TEMPFILE}. Cleaning up tempfiles..."
+  if unpack "${EZA_TEMPFILE}" "${EZA_TEMPDIR}"; then
+    # -> /usr/local/bin/eza
+    sudo cp -pu "${EZA_TEMPDIR}"/eza /usr/local/bin
+    log "Cleaning up eza tempfiles..."
+    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPDIR}" "${EZA_TEMPFILE}"
+    success "eza installed."
   else
     log "Cleaning up eza tempfiles..."
-    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPFILE}"
-    sudo chown "${INVOKING_USER}":"${INVOKING_GROUP}" "/usr/local/bin/eza"
-    success "eza installed."
+    cleanup "${LATEST_INFO_TEMPFILE}" "${EZA_TEMPDIR}" "${EZA_TEMPFILE}"
+    die "Could not unpack eza archive ${EZA_TEMPFILE}."
   fi
 }
 
@@ -102,18 +105,22 @@ function install_btop() {
   BTOP_VERSION=$(get_json_value "tag_name" "${LATEST_INFO_TEMPFILE}")
   BTOP_VERSION="${BTOP_VERSION#v}" # strip leading 'v' from version string if present
   log "Latest btop version: v${BTOP_VERSION}"
+  # BROWSER_URL=$(get_json_value "browser_download_url" "${LATEST_INFO_TEMPFILE}" true | grep "x86_64-unknown-linux-musl.tar.gz")
   BROWSER_URL="https://github.com/aristocratos/btop/releases/download/v${BTOP_VERSION}/btop-x86_64-unknown-linux-musl.tar.gz"
 
   log "Downloading btop archive: ${BROWSER_URL}"
-  # https://github.com/aristocratos/btop/releases/download/v1.4.7/btop-x86_64-unknown-linux-musl.tar.gz
   download "${BROWSER_URL}" "${BTOP_TEMPFILE}"
-
-  sudo tar -xjf "${BTOP_TEMPFILE}" -C "${BTOP_TEMPDIR}"
-  sudo cp -pu "${BTOP_TEMPDIR}"/btop/bin/btop /usr/local/bin
-
-  log "Cleaning up btop  tempfiles..."
-  cleanup "${BTOP_TEMPFILE}" "${BTOP_TEMPDIR}" "${LATEST_INFO_TEMPFILE}"
-  success "btop installed."
+ 
+  if unpack "${BTOP_TEMPFILE}" "${BTOP_TEMPDIR}"; then
+    sudo cp -pu "${BTOP_TEMPDIR}"/btop/bin/btop /usr/local/bin
+    log "Cleaning up btop tempfiles..."
+    cleanup "${BTOP_TEMPFILE}" "${BTOP_TEMPDIR}" "${LATEST_INFO_TEMPFILE}"
+    success "btop installed."
+  else
+    log "Cleaning up btop tempfiles..."
+    cleanup "${BTOP_TEMPFILE}" "${BTOP_TEMPDIR}" "${LATEST_INFO_TEMPFILE}"
+    die "Could not unpack btop archive ${BTOP_TEMPFILE}."
+  fi
 }
 
 # pigz better archive compression than gzip
@@ -147,5 +154,4 @@ function install_tools() {
 }
 
 check_preconditions
-sudo -v
 install_tools

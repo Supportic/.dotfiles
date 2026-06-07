@@ -8,14 +8,16 @@ currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 . "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  ! isRoot && die "Please execute script with sudo permissions."
+  isRoot && die "Please execute script as user with sudo permissions."
 
   if isFalse "${nointeractive}"; then
     info "This script will configure your Linux machine."
     read -rep $'Do you want to continue? [y/n]: ' canStart
     ([ -z "${canStart}" ] || ! isTrue "$canStart") && die "Script exited.";
-    print_info_banner "Setting up Linux...\nHOME=${INVOKING_HOME} | USER=${INVOKING_USER}"
+    print_info_banner "Setting up Linux...\nHOME=${HOME} | USER=${USER}"
   fi
+
+  ask_sudo
 
   local packages=("")
   local packagesToInstall=""
@@ -28,20 +30,18 @@ function check_preconditions() {
   fi
 }
 
-# sudo -E is deprecated in sudo-rs, so instead pass the required environment variables
-# -E would preserve all environment variables
 function install_main() {
   if isTrue "${should_install_essentials}"; then
-    sudo SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/essentials.sh
+    bash "${currentDir}"/essentials.sh
   fi
 
   # create directory and symlinks with user permissions 
   if isTrue "${should_create_symlinks}"; then
-    sudo_user SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/sync.sh
+    bash "${currentDir}"/sync.sh
   fi
 
   if isTrue "${should_install_tools}"; then
-    sudo SUDO_USER="${INVOKING_USER}" bash "${currentDir}"/tools.sh
+    bash "${currentDir}"/tools.sh
   fi
 }
 
@@ -54,4 +54,4 @@ end="$(date +%s%N)"
 difference="$((end-start))"
 
 success "Installation Complete\n"
-log "script took: %s\n" "$(displaytime ${difference})"
+log "script took: %s" "$(displaytime ${difference})"

@@ -7,7 +7,7 @@ currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 . "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  isRoot && die "Please execute script without sudo permissions."
+  isRoot && die "Please execute script as user without sudo."
 
   local packages=("")
   local packagesToInstall=""
@@ -28,7 +28,7 @@ function create_symlinks() {
   symlink_scripts
 
   configure_git
-  command_exists "zsh" && zsh -c "source ${INVOKING_HOME}/.zshrc"
+  command_exists "zsh" && zsh -c "source ${HOME}/.zshrc"
 }
 
 check_preconditions

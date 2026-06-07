@@ -7,7 +7,8 @@ currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 . "${currentDir}"/includes/_functions.sh
 
 function check_preconditions() {
-  ! isRoot && die "Please execute script with sudo permissions."
+  isRoot && die "Please execute script as user without sudo."
+  ask_sudo
   
   local packages=("")
   local packagesToInstall=""
@@ -56,7 +57,7 @@ function install_git() {
 function install_fonts() {
   if [ ! -d "${LOCAL_FONTS_DIR}" ]; then
     log "Creating fonts directory: ${LOCAL_FONTS_DIR}"
-    sudo_user mkdir -p "${LOCAL_FONTS_DIR}" >/dev/null 2>&1 || die "Unable to create fonts directory: ${LOCAL_FONTS_DIR}"
+    mkdir -p "${LOCAL_FONTS_DIR}" >/dev/null 2>&1 || die "Unable to create fonts directory: ${LOCAL_FONTS_DIR}"
   fi
 
   if [ ! -d "${LOCAL_FONTS_DIR}/JetBrains Mono" ]; then
@@ -74,8 +75,8 @@ function install_fonts() {
 
     log "Downloading fonts archive: ${BROWSER_URL}"
     download "${BROWSER_URL}" "${FONTS_TEMPFILE}"
-    log "Extracting fonts: ${LOCAL_FONTS_DIR}"
-    extract "${FONTS_TEMPFILE}" "${LOCAL_FONTS_DIR}/JetBrains Mono"
+    log "Unpacking fonts: ${LOCAL_FONTS_DIR}"
+    unpack "${FONTS_TEMPFILE}" "${LOCAL_FONTS_DIR}/JetBrains Mono"
 
     log "Cleaning up..."
     cleanup "${LATEST_INFO_TEMPFILE}"
@@ -100,7 +101,7 @@ function install_language() {
   ! locale -a | grep "${en_locale}" && lang_to_install+="${en}"
 
   # install when language list is filled
-  [ -z "${lang_to_install}" ] || sudo locale-gen ${lang_to_install}
+  [ -z "${lang_to_install}" ] || sudo locale-gen "${lang_to_install}"
   sudo update-locale \
     # The locale set for this variable will be used for all the LC_* variables that are not explicitly set.
     LANG="${de}" \
@@ -114,43 +115,42 @@ function install_language() {
 
 function install_ssh() {
   install_packages "openssh-client" "keychain"
-  isWSL & install_packages "socat"
 }
 
 function install_zsh() {
-  if [ -z "$(command -v zsh | sudo tee -a /etc/shells)" ] || [ ! -d "${INVOKING_HOME}"/.oh-my-zsh ]; then
+  if [ -z "$(command -v zsh | sudo tee -a /etc/shells)" ] || [ ! -d "${HOME}"/.oh-my-zsh ]; then
     install_packages "zsh"
 
     # unattended -> not trying to change the default shell, and it also won't run zsh when the installation has finished.
-    sudo_user bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
     # change default shell
-    sudo chsh -s "$(which zsh)" "${INVOKING_USER}"
+    sudo chsh -s "$(which zsh)" "${USER}"
 
     # local exclude_ext pluginDir pluginDirName
 
     # exclude_ext=("git docker docker-compose dotenv z")
 
     # # remove not used stuff
-    # rm -rf "${INVOKING_HOME}"/.oh-my-zsh/themes/*
-    # for pluginDir in "${INVOKING_HOME}"/.oh-my-zsh/plugins/*; do
+    # rm -rf "${HOME}"/.oh-my-zsh/themes/*
+    # for pluginDir in "${HOME}"/.oh-my-zsh/plugins/*; do
     #   pluginDirName="$(basename "${pluginDir}")"
     #   # NOTE: invert by removing !
     #   if [ -d "${pluginDir}" ] && [[ ! "${exclude_ext[*]}" =~ ${pluginDirName} ]]; then
     #     rm -rf "${pluginDir}"
     #   fi
     # done
-    # printf "\n# custom injected\n/themes\n/plugins\n" >> "${INVOKING_HOME}"/.oh-my-zsh/.gitignore
+    # printf "\n# custom injected\n/themes\n/plugins\n" >> "${HOME}"/.oh-my-zsh/.gitignore
 
     # install theme 
-    sudo_user git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
+    git clone -q --depth=1 https://gitee.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/themes/powerlevel10k || die "Unable to clone p10k"
     # install plugins
-    sudo_user git clone -q https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/plugins/zsh-autosuggestions || die "Unable to clone zsh-autosuggestions"
-    sudo_user git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
-    sudo_user git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
+    git clone -q https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-autosuggestions || die "Unable to clone zsh-autosuggestions"
+    git clone -q https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/zsh-syntax-highlighting || die "Unable to clone zsh-syntax-highlighting"
+    git clone -q https://github.com/paulirish/git-open.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open || die "Unable to clone git-open"
     # replace string to avoid console output
     # shellcheck disable=SC2016
-    sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl" > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-${INVOKING_HOME}/.oh-my-zsh/custom}"/plugins/git-open/git-open
+    sed -i 's/${BROWSER:-$open} "$openurl"/${BROWSER:-$open} "$openurl" > \/dev\/null 2>\&1/' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"/plugins/git-open/git-open
 
     success "ZSH installed."
   else
@@ -170,5 +170,4 @@ function install_essentials() {
 }
 
 check_preconditions
-sudo -v
 install_essentials

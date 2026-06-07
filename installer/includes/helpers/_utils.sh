@@ -10,6 +10,19 @@ function isRoot(){
   [ "${EUID:-$(id -u)}" -eq 0 ]
 }
 
+# Request sudo credentials upfront and keep them alive
+function ask_sudo() {
+  sudo -v
+  # Keep-alive: update existing sudo time stamp until script has finished
+  while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+}
+
+# 1. Check if the process is running as root
+# 2. Check if SUDO_USER is set (meaning a regular user elevated via sudo)
+function isSudoUser() {
+  [ "${EUID:-$(id -u)}" -eq 0 ] && [ -n "$SUDO_USER" ]
+}
+
 # installs apt packages if doesn't exist (root permissions required)
 # usage: install_packages curl ca-certificates
 function install_packages() {
@@ -34,24 +47,34 @@ function ensure_packages() {
 
 # $1 = time difference in ms
 function displaytime() {
-  # Milliseconds
-  local ms="$(($1/1000000))"
-  # Seconds
-  local s="$(($1/1000000000))"
+  # Guard against empty or invalid input strings
+  local total_ns="${1:-0}"
+  
+  # Milliseconds & Seconds calculations
+  local ms=$((total_ns / 1000000))
+  local s=$((total_ns / 1000000000))
 
-  # Milliseconds (2 milliseconds correction)
-  local MS="$((ms-2))"
-  # Seconds
-  local S="$((s%60))"
-  local M="$((s/60%60))"
-  local H="$((s/60/60%24))"
-  local D="$((s/60/60/24))"
-  (( $D > 0 )) && printf '%02d days ' $D
-  (( $H > 0 )) && printf '%02d hours ' $H
-  (( $M > 0 )) && printf '%02d minutes ' $M
-  (( $S > 0 )) && printf '%02d seconds ' $S
-  (( $D > 0 || $H > 0 || $M > 0 || $S > 0 )) && printf 'and '
-  echo "${MS:(-3)} milliseconds\n"
+  # Milliseconds correction (Prevent dropping below 0)
+  local MS=$((ms - 2))
+  if (( MS < 0 )); then
+    MS=0
+  fi
+
+  local S=$((s % 60))
+  local M=$((s / 60 % 60))
+  local H=$((s / 60 / 60 % 24))
+  local D=$((s / 60 / 60 / 24))
+
+  (( D > 0 )) && printf '%d days ' $D
+  (( H > 0 )) && printf '%d hours ' $H
+  (( M > 0 )) && printf '%d minutes ' $M
+  (( S > 0 )) && printf '%d seconds ' $S
+  (( D > 0 || H > 0 || M > 0 || S > 0 )) && printf 'and '
+
+  # Use printf %03d to safely pad numbers under 3 digits (e.g., 5 ms prints as 005)
+  # and get the final 3 digits mathematically via modulo rather than string slicing
+  local ms_three_digits=$(( MS % 1000 ))
+  printf "%d milliseconds" $ms_three_digits
 }
 
 # regardless of capitalisation
@@ -104,7 +127,7 @@ function print_info_banner() {
     LANG="C.UTF-8" LC_ALL="C.UTF-8"
     strLen="${#1}"
     LANG="${oLang}" LC_ALL="${oLcAll}"
-    echo ${strLen}
+    echo "${strLen}"
   }
   function repeat() { num="${2-}"; printf -- "$1%.0s" $(seq 1 $num); }
   function multiline_max_length(){
@@ -122,7 +145,7 @@ function print_info_banner() {
       fi
     done
 
-    echo $maxMsgLength
+    echo "$maxMsgLength"
   }
   function multiline_prepend_symbol(){
     local msg symbol newMsg
@@ -150,13 +173,68 @@ function print_info_banner() {
   info "$(printf "\n%s${msg} \n%s" "${divider}" "${divider}")\n"
 }
 
-function extract() {
-  system_command_exists "unzip" || die "Please install unzip."
-
+# unpack tar or zip archive based on file extension
+# $1 = archive, $2 = optional destination directory, otherwise current directory is used
+function unpack() {
   local archive="${1-}"
   local extract_to="${2-}"
 
-  unzip -qo "${archive}" -d "${extract_to}" >/dev/null 2>&1
+  if [ -z "$archive" ]; then
+    failure "unpack: Error no archive specified."
+    failure "Usage: unpack <filename> [destination_directory]"
+    return 1
+  fi
+
+  if [ ! -f "$archive" ]; then
+    failure "unpack: Error '$archive' is not a valid file."
+    return 1
+  fi
+
+  local mime_type
+  mime_type=$(file --mime-type -b "$archive" 2>/dev/null)
+
+  # Fallback to file extension parsing or MIME parsing...
+  case "$archive" in
+    *.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz|*.txz|*.tar)
+      if [ -n "$extract_to" ]; then
+        tar -xf "$archive" -C "$extract_to"
+      else
+        tar -xf "$archive"
+      fi
+      ;;
+    *.zip)
+      system_command_exists "unzip" || die "Please install unzip."
+      if [ -n "$extract_to" ]; then
+        unzip -qo "$archive" -d "$extract_to"
+      else
+        unzip -qo "$archive"
+      fi
+      ;;
+    *)
+      # Fallback MIME-type checks
+      case "$mime_type" in
+        application/gzip|application/x-gzip|application/x-bzip2|application/x-xz|application/x-tar)
+          if [ -n "$extract_to" ]; then
+            tar -xf "$archive" -C "$extract_to"
+          else
+            tar -xf "$archive"
+          fi
+          ;;
+        application/zip)
+          system_command_exists "unzip" || die "Please install unzip."
+          if [ -n "$extract_to" ]; then
+            unzip -qo "$archive" -d "$extract_to"
+          else
+            unzip -qo "$archive"
+          fi
+          ;;
+        *)
+          failure "unpack: Error '$archive' (Type: $mime_type) is unsupported."
+          return 1
+          ;;
+      esac
+      ;;
+  esac
 }
 
 # Remove files or directories

@@ -3,8 +3,9 @@ set -euo pipefail
 
 currentDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-# User environment (HOME, USER, GROUP) are set by _user_info.sh
-# This file defines path constants that depend on the user environment
+export USER="${USER:-$(id -un)}"
+export HOME="${HOME:-$(getent passwd "${USER}" | cut -d: -f6)}"
+export GROUP="${GROUP:-$(id -gn "${USER}")}"
 
 ###################################################### variables
 
@@ -21,7 +22,7 @@ export TZ="Europe/Berlin"
 readonly TZ
 
 # Binaries local directory
-export LOCAL_BIN_DIR="${INVOKING_HOME}/bin"
+export LOCAL_BIN_DIR="${HOME}/bin"
 readonly LOCAL_BIN_DIR
 
 # Scripts local directory
@@ -29,7 +30,7 @@ export LOCAL_SCRIPTS_DIR="${LOCAL_BIN_DIR}/scripts"
 readonly LOCAL_SCRIPTS_DIR
 
 # Fonts local directory
-export LOCAL_FONTS_DIR="${INVOKING_HOME}/.fonts"
+export LOCAL_FONTS_DIR="${HOME}/.fonts"
 readonly LOCAL_FONTS_DIR
 
 # check if in WSL (every docker container created from WSL regardless of the base image)
@@ -38,4 +39,3 @@ if [[ -n "${WSL_DISTRO_NAME-}" ]] || (uname -r | grep -qiF 'microsoft'); then
 	IN_WSL=true
 fi
 readonly IN_WSL
-
