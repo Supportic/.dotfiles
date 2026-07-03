@@ -213,3 +213,86 @@ function nvm-remove-all() {
     nvm uninstall "${version}"
   done
 }
+
+# $1 = host
+function checkssl() {
+  local host=${1:-}
+
+  if [ -z "$host" ]; then
+    echo "❌ Error: Please provide a host (e.g., example.com)."
+    return 1
+  fi
+
+  # DNS & Network Connectivity / Handshake
+  # We fetch the HTTP headers here to capture the remote server's timestamp
+  local headers curl_status
+  headers=$(curl --fail --max-time 5 -sI "https://$host" 2>&1)
+  curl_status=$?
+
+  if [ $curl_status -ne 0 ]; then
+    case $curl_status in
+      6)
+        echo "❌ Error: Domain '$host' does not exist or cannot be resolved (DNS failure)."
+        ;;
+      28)
+        echo "❌ Error: Connection to $host:443 timed out."
+        ;;
+      7)
+        echo "❌ Error: Connection refused by $host. Port 443 might be closed."
+        ;;
+      60|51)
+        echo "❌ Error: SSL Certificate for '$host' is INVALID or EXPIRED."
+        # Don't exit yet, let's still parse the dates if possible
+        ;;
+      *)
+        echo "❌ Error: Connection failed ($headers)."
+        ;;
+    esac
+    
+    if [ $curl_status -ne 60 ] && [ $curl_status -ne 51 ]; then
+      return 1
+    fi
+  fi
+
+  # --- Extract Host Server's Timezone ---
+  # Parse the "Date:" header from the server response (e.g., "Date: Fri, 03 Jul 2026 13:28:05 GMT")
+  local server_date_header remote_tz="UTC"
+  server_date_header=$(echo "$headers" | grep -i "^date:" | sed 's/\r//g')
+  
+  if [ -n "$server_date_header" ]; then
+    # Extract the timezone string at the end of the HTTP date header (usually GMT or UTC)
+    remote_tz=$(echo "$server_date_header" | awk '{print $G}' | awk '{print $NF}')
+  fi
+
+  # --- Extract Certificate Dates via OpenSSL ---
+  local cert_output
+  cert_output=$(echo | timeout 5 openssl s_client -servername "$host" -connect "$host:443" 2>/dev/null)
+
+  if ! echo "$cert_output" | grep -q "BEGIN CERTIFICATE"; then
+    echo "❌ Error: Could not extract certificate details."
+    return 1
+  fi
+
+  local raw_from raw_to
+  raw_from=$(echo "$cert_output" | openssl x509 -noout -startdate | cut -d= -f2)
+  raw_to=$(echo "$cert_output" | openssl x509 -noout -enddate | cut -d= -f2)
+
+  # --- Date Formatting & Conversion ---
+  # We set the TZ environment variable dynamically for the execution of the 'date' command
+  local formatted_from formatted_to
+  formatted_from=$(TZ="$remote_tz" date -d "$raw_from" +"Week %W - %a, %d %b %Y %H:%M %Z")
+  formatted_to=$(TZ="$remote_tz" date -d "$raw_to" +"Week %W - %a, %d %b %Y %H:%M %Z")
+
+  # Final Output
+  if [ $curl_status -eq 0 ]; then
+    echo "✅ SSL Certificate for '$host' is VALID."
+    echo "   Valid From : $formatted_from ($remote_tz)"
+    echo "   Expires On : $formatted_to ($remote_tz)"
+    return 0
+  else
+    echo "   Expired On : $formatted_to ($remote_tz)"
+    return 1
+  fi
+}
+
+
