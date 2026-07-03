@@ -295,4 +295,14 @@ function checkssl() {
   fi
 }
 
+# $1 = package name (optional)
+function pkglist() {
+  local pkg=${1:-}
 
+  if [ -n "$pkg" ]; then
+    /bin/ls -lt --time-style=+"%Y-%m-%d %H:%M" /var/lib/dpkg/info/*.list | awk 'BEGIN {printf "Date\tTime\tPackage\n"} {printf "%s\t%s\t%s\n", $6, $7, $8}' | sed 's|/var/lib/dpkg/info/||; s|\.list$||' | grep -iE "^Date|$pkg" | column -t | grep --color=always -i -e "$1" -e "$"
+    return;
+  fi
+
+  /bin/ls -lt --time-style=+"%Y-%m-%d %H:%M" /var/lib/dpkg/info/*.list | awk 'BEGIN {printf "Date\tTime\tPackage\n"} {printf "%s\t%s\t%s\n", $6, $7, $8}' | sed 's|/var/lib/dpkg/info/||; s|\.list$||' | column -t
+}
