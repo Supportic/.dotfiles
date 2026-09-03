@@ -124,6 +124,12 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
+# mainly for MAC, verify: keychain -L (dont use if password protected keys)
+# keychain should be executed once with existing keys as parameter
+# if [ -x "$(command -v keychain)" ]; then
+#   eval "$(keychain -q --eval --agents ssh $(grep -slR "PRIVATE" ~/.ssh/ | tr '\n' ' '))"
+# fi
+
 # windows WSL: ssh agent does not persist after session, recreate it
 # https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials
 # verify: ssh-add -l
