@@ -22,7 +22,8 @@ fi
 NPIPERELAY_PATH="${WIN_USER_HOME}/npiperelay.exe" 
 
 # check if the socket file exists AND a process is listening on it
-sshpid=$(ss -ap | grep "$SSH_AUTH_SOCK")
+# -x: display all unix domain sockets (including listening and non-listening)
+sshpid=$(ss -xap | grep "$SSH_AUTH_SOCK")
 if [ "$1" = "-k" ] || [ "$1" = "-r" ]; then
     sshpid=${sshpid//*pid=/}
     sshpid=${sshpid%%,*}
