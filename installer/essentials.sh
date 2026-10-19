@@ -26,6 +26,7 @@ function check_preconditions() {
 # dnsutils dig and nslookup
 # net-tools for ifconfig; iproute2 is the updated one for ip
 # lsof deal with ports
+# micro alternative to vim, nano, vi, emacs
 function install_base_packages() {
   sudo DEBIAN_FRONTEND="noninteractive" TZ="${TZ}" apt-get -y install \
     software-properties-common \
@@ -37,7 +38,8 @@ function install_base_packages() {
     tree \
     dnsutils \
     net-tools iproute2 \
-    lsof
+    lsof \
+    micro
 }
 
 # set /etc/localtime and /etc/timezone
