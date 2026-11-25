@@ -1,4 +1,7 @@
+# add hosts above
+
 Host *
+  user root
   ServerAliveInterval 100
   ForwardAgent yes
   IgnoreUnknown AddKeysToAgent,UseKeychain
